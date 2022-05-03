@@ -2,6 +2,14 @@ import pandas as pd
 import sqlite3
 
 
+# GOAL: try to identify specific posters on their writing style (or additional metadata)
+
+
+def mergeDF(articles, posts):
+
+    pass
+
+
 def main():
     con = sqlite3.connect('dataset/corpus.sqlite3')
 
@@ -17,6 +25,8 @@ def main():
     print(articles_df)
     print(posts_df)
     print(newspaper_staff_df)
+
+    full_df = mergeDF(articles_df, posts_df)
 
 
 
