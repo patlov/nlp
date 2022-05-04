@@ -16,13 +16,20 @@ def bagOfWords(text: str, ngram_range=(1, 1)):
 
 
 '''
+    Word2Vec implementation
+'''
+def word2Vec(text: str, ngram_range=(1, 1)):
+    raise NotImplementedError()
+
+
+'''
     Bag Of Words implementation. corpus are all texts
 '''
 def TfIdf(corpus: list, ngram_range=(1, 1)):
     vectorizer = TfidfVectorizer(analyzer="word", norm="l2", ngram_range=ngram_range)
-
     matrix = vectorizer.fit_transform(corpus)
-    return matrix
+    tfidf_df = pd.DataFrame(matrix.toarray(), columns=vectorizer.get_feature_names())
+    return tfidf_df
 
 
 
@@ -33,7 +40,7 @@ def main():
 
     # df = bagOfWords("Hallo, ich war mal groß und jetzt bin ich klein. Na und. Was machst du so?", ngram_range=(1,2))
 
-    sentences = ['Hallo mein Name ist David', 'Das ist ein schöner Name', 'Du heißt Patrick, das ist kein schöner Name']
+    sentences = ['Hallo mein Name ist David', 'Das ist ein schöner Name', 'Du heißt Patrick, das ist ok']
     df = TfIdf(sentences)
 
     print(df)
