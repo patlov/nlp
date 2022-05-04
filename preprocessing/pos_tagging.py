@@ -5,6 +5,8 @@ import pickle
 from ClassifierBasedGermanTagger import ClassifierBasedGermanTagger
 
 
+# just an extra class for POS Tagging functions
+
 
 def trainAndSave_POSModel():
     corp = nltk.corpus.ConllCorpusReader('.', 'tiger_release_aug07.corrected.16012013.conll09',
@@ -25,29 +27,24 @@ def trainAndSave_POSModel():
 
     return tagger
 
-    print("Safe to file")
-    with open('nltk_german_classifier_data.pickle', 'wb') as f:
-        pickle.dump(tagger, f, protocol=2)
 
+def POSTagging(text_tokens : list):
 
-def load_POSModel():
     with open('nltk_german_classifier_data.pickle', 'rb') as f:
         tagger = pickle.load(f)
 
-    return tagger
-
-def POSTagging(text_tokens : list):
-    tagger = load_POSModel()
     text_tags = tagger.tag(text_tokens)
     return text_tags
 
 def POSTaggingWithTagger(tagger, word : list):
     return tagger.tag(word)
 
-
 def main():
     # trainAndSave_POSModel()
-    tagger = load_POSModel()
+
+    with open('nltk_german_classifier_data.pickle', 'rb') as f:
+        tagger = pickle.load(f)
+
     tags = POSTaggingWithTagger(tagger,"ich war mal größer".split(sep=' '))
     print(tags)
     pass

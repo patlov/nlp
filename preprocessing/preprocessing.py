@@ -31,7 +31,17 @@ def lemmatizeSentence(comment):
             tagger = pickle.load(f)
 
     tokens_with_pos = pos_tagging.POSTaggingWithTagger(tagger, tokens)
-    return ' '.join([lemmatizer.find_lemma(element[0], element[1]) for element in tokens_with_pos])
+
+    words = []
+    for i, token_with_pos in enumerate(tokens_with_pos):
+        try:
+            lemmatized = lemmatizer.find_lemma(token_with_pos[0], token_with_pos[1])
+        except ValueError: # "ich" or other prepositions are not found
+            words.append(token_with_pos[0]) # add the original word
+            continue
+        words.append(lemmatized)
+
+    return ' '.join(words)
 
 
 def main():
