@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 from typing import List
@@ -6,10 +5,20 @@ from typing import List
 
 @dataclass
 class User:
+    user_id: int
+    comments: list
+    numberPositiveVotes: int
+    numberNegativeVotes: int
+    creationDate: str
 
-    user_id : int
-    comments : list
-
-
-    def addComment(self, comment : str):
+    def addComment(self, comment: str):
         self.comments.append(comment)
+
+    def setPositiveVotes(self, votes: int):
+        self.numberPositiveVotes = votes
+
+    def setNegativeVotes(self, votes: int):
+        self.numberNegativeVotes = votes
+
+    def setCreationDate(self, datestring: str):
+        self.creationDate = datestring
