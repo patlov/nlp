@@ -2,20 +2,24 @@ import pandas as pd
 import sqlite3
 from User import User
 
+
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
 
+# Step 1: get all Posts from a specific user-id
+# Step 2: preprocessing von allen posts von einem user
+# Step 3: feature identification (corr matrix)
+# Step 4: user identifizieren basierend auf writing style
 
 def mergeDF(articles, posts):
-    raise NotImplementedError()
-    pass
-
-
+    return pd.merge(articles, posts, on='ID_Article')
 
 
 '''
     converting the posts to User objects with the comment
-    maybe addition attributes can be helpful at user-class
+    maybe additional attributes can be helpful at user-class
 '''
+
+
 def convertToUsersWithPosts(posts):
     users = {}
 
@@ -24,13 +28,15 @@ def convertToUsersWithPosts(posts):
         if user_id in users:
             current_user = users[user_id]
         else:
-            current_user = User(user_id, [])
+            current_user = User(user_id, [], -1, -1, '')
             users[user_id] = current_user
 
         current_user.addComment(row['Body'])
+        current_user.setPositiveVotes(row['PositiveVotes'])
+        current_user.setNegativeVotes(row['NegativeVotes'])
+        current_user.setCreationDate(row['CreatedAt'])
 
     return users
-
 
 
 def main():
@@ -39,23 +45,18 @@ def main():
     articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    convertToUsersWithPosts(posts_df)
+    users = convertToUsersWithPosts(posts_df)
 
+    # newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
+    # annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
+    # annotations_consolidated_df = pd.read_sql_query("SELECT * FROM Annotations_consolidated", con)
+    # cross_val_split_df = pd.read_sql_query("SELECT * FROM CrossValSplit", con)
+    # categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
 
-    newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
-    annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
-    annotations_consolidated_df = pd.read_sql_query("SELECT * FROM Annotations_consolidated", con)
-    cross_val_split_df = pd.read_sql_query("SELECT * FROM CrossValSplit", con)
-    categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
-
-
-    print(articles_df)
-    print(posts_df)
-    print(newspaper_staff_df)
+    print(users)
 
     full_df = mergeDF(articles_df, posts_df)
-
-
+    print(full_df)
 
 
 if __name__ == "__main__":
