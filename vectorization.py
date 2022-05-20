@@ -78,7 +78,7 @@ def lemmatize_word(text):
 
 
 '''
-    Bag Of Words implementation. corpus are all texts
+   TFIDF implementation. corpus are all texts
 '''
 
 

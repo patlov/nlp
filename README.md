@@ -30,4 +30,18 @@ vectorization is the process to converting text into numerical representation, w
 
 ## Ideen
 
-- um writing style von einem user zu bekommen, alle seine comments zu einem mergen
+Clasification Task
+
+Classes are Users
+each User has features:
+- average comment length
+- #stopwords
+- lowercase / upcase writing style
+- TF-IDF
+- Phrasen (sentiwordnet)
+- Triggered Categories (which topics does the user write comments)
+- stylometric features (see stylometry)
+- sentiment detaction (positive / negative comments)
+
+  
+
