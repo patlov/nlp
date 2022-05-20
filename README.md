@@ -42,7 +42,9 @@ Classes are Users
 - Phrasen (sentiwordnet)
 - Triggered Categories (which topics does the user write comments)
 - stylometric features (see stylometry)
-- sentiment detaction (positive / negative comments)
+- sentiment detaction (positive / negative comments) \
+
+![img.png](assets/img.png)
 
 ## TODO
 1) SQL query schreiben, dass wir alle user sortiert mit allen kommentare bekommen
