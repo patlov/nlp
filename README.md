@@ -41,7 +41,9 @@ each User has features:
 - Phrasen (sentiwordnet)
 - Triggered Categories (which topics does the user write comments)
 - stylometric features (see stylometry)
-- sentiment detaction (positive / negative comments)
+- sentiment detaction (positive / negative comments) \
+
+![img.png](assets/img.png)
 
   
 
