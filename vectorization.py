@@ -45,37 +45,6 @@ def word2Vec(texts: list):
           str(model2.wv.similarity(texts[0], texts[1])))
 
 
-'''
-    tokenization of words and stopwords removal
-'''
-
-
-def remove_stopwords(text):
-    stop_words = set(stopwords.words("english"))
-    word_tokens = word_tokenize(text)
-    filtered_text = [word for word in word_tokens if word not in stop_words]
-    return filtered_text
-
-
-'''
-   Word stemming based on porter stemmer e.g. science -> scienc, uses -> use
-'''
-
-
-def stem_words(text):
-    word_tokens = word_tokenize(text)
-    stems = [stemmer.stem(word) for word in word_tokens]
-    return stems
-
-'''
-    Lemmatization of text e.g. uses -> use, processes -> process
-'''
-
-def lemmatize_word(text):
-    word_tokens = word_tokenize(text)
-    lemmas = [lemmatizer.lemmatize(word, pos='v') for word in word_tokens]
-    return lemmas
-
 
 '''
     Bag Of Words implementation. corpus are all texts
@@ -103,8 +72,6 @@ def main():
     print(df)
 
     word2Vec(sentences)
-    tokenizedSentences = [remove_stopwords(sentence) for sentence in sentences_eng]
-    print(tokenizedSentences)
 
     pass
 
