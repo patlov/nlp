@@ -39,13 +39,36 @@ def convertToUsersWithPosts(posts):
     return users
 
 
+def featureExtraction(subset_df : pd.DataFrame):
+    # user_df is a dataframe with all comments from one user
+
+    # make feature extraction
+
+
+    # return list of feature values for this user
+    pass
+
+
+def createFeatureMatrix(users_df : pd.DataFrame) -> pd.DataFrame:
+
+    user_ids = users_df.ID_User.unique()
+    for user_id in user_ids:
+        df_subset = users_df.loc[users_df['ID_User'] == user_id]
+        features = featureExtraction(df_subset)
+
+
+
+
 def main():
     con = sqlite3.connect('dataset/corpus.sqlite3')
 
-    articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
-    posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
+    # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
+    # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    users = convertToUsersWithPosts(posts_df)
+    users_df = pd.read_sql_query("SELECT ID_User, Body FROM Posts ORDER BY ID_User", con)
+    features_matrix = createFeatureMatrix(users_df)
+
+
 
     # newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
     # annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
@@ -53,10 +76,10 @@ def main():
     # cross_val_split_df = pd.read_sql_query("SELECT * FROM CrossValSplit", con)
     # categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
 
-    print(users)
+    # print(users)
 
-    full_df = mergeDF(articles_df, posts_df)
-    print(full_df)
+    # full_df = mergeDF(articles_df, posts_df)
+    # print(full_df)
 
 
 if __name__ == "__main__":
