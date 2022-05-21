@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+import text_properties
 from User import User
 
 
@@ -15,48 +16,60 @@ def mergeDF(articles, posts):
 
 
 '''
-    converting the posts to User objects with the comment
-    maybe additional attributes can be helpful at user-class
+    extract all features from the user's comments
+    @return: one user with all features calculated
 '''
-
-
-def convertToUsersWithPosts(posts):
-    users = {}
-
-    for key, row in posts.iterrows():
-        user_id = row['ID_User']
-        if user_id in users:
-            current_user = users[user_id]
-        else:
-            current_user = User(user_id, [], -1, -1, '')
-            users[user_id] = current_user
-
-        current_user.addComment(row['Body'])
-        current_user.setPositiveVotes(row['PositiveVotes'])
-        current_user.setNegativeVotes(row['NegativeVotes'])
-        current_user.setCreationDate(row['CreatedAt'])
-
-    return users
-
-
-def featureExtraction(subset_df : pd.DataFrame):
+def featureExtraction(df_user : pd.DataFrame) -> list:
     # user_df is a dataframe with all comments from one user
 
     # make feature extraction
+    average_text_length = text_properties.getAverageTextLength(df_user)
+
+    # go through all comments of a user, calculate the features and return it as dict
+    current_user_features = []
+    for index, row in df_user.iterrows():
+        text = row['Body']
+        if text == None:
+            continue
+        letters_ratio = text_properties.getLettersRatio(text)
+        digit_ration = text_properties.getDigitRatio(text)
+        uppercase_ration = text_properties.getUppercaseRatio(text)
+        lowercase_ration = text_properties.getLowercaseRatio(text)
+        whitespace_ration = text_properties.getWhitespaceRatio(text)
+
+        features = {
+            "ID_Post": row['ID_Post'],
+            "ID_User" : row['ID_User'],
+            "letter_ratio": letters_ratio,
+            "digit_ration": digit_ration,
+            "uppercase_ration": uppercase_ration,
+            "lowercase_ration": lowercase_ration,
+            "whitespace_ration": whitespace_ration
+        }
+        current_user_features.append(features)
 
 
     # return list of feature values for this user
-    pass
+    return current_user_features
 
 
-def createFeatureMatrix(users_df : pd.DataFrame) -> pd.DataFrame:
 
-    user_ids = users_df.ID_User.unique()
-    for user_id in user_ids:
-        df_subset = users_df.loc[users_df['ID_User'] == user_id]
-        features = featureExtraction(df_subset)
+'''
+    create the features for all users
+    @return: a dataframe with all users as rows and all features as columns
+'''
+def createFeatureMatrix(all_users_df : pd.DataFrame) -> pd.DataFrame:
 
+    feature_matrix = pd.DataFrame()
+    user_ids = all_users_df.ID_User.unique()
+    for user_id in user_ids[:10]:
+        user_subset = all_users_df.loc[all_users_df['ID_User'] == user_id]
+        current_user_comments_with_features = featureExtraction(user_subset)
 
+        user_comments_feature_matrix = pd.DataFrame(current_user_comments_with_features)
+        feature_matrix = feature_matrix.append(user_comments_feature_matrix)
+
+    return feature_matrix
 
 
 def main():
@@ -65,11 +78,12 @@ def main():
     # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    users_df = pd.read_sql_query("SELECT ID_User, Body FROM Posts ORDER BY ID_User", con)
+    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
     features_matrix = createFeatureMatrix(users_df)
 
 
 
+    # maybe useful for metadata
     # newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
     # annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
     # annotations_consolidated_df = pd.read_sql_query("SELECT * FROM Annotations_consolidated", con)
