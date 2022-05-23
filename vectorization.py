@@ -5,8 +5,6 @@ import pandas as pd
 import gensim
 import nltk
 from gensim.models import Word2Vec
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from nltk.stem import WordNetLemmatizer
 

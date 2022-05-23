@@ -1,13 +1,13 @@
-
 import nltk
 import random
 import pickle
-from ClassifierBasedGermanTagger import ClassifierBasedGermanTagger
-
+import ClassifierBasedGermanTagger
 
 '''
     once the model must be trained and saved 
 '''
+
+
 def trainPOSModel():
     corp = nltk.corpus.ConllCorpusReader('.', 'tiger_release_aug07.corrected.16012013.conll09',
                                          ['ignore', 'words', 'ignore', 'ignore', 'pos'],
@@ -20,7 +20,7 @@ def trainPOSModel():
     split_size = int(len(tagged_sents) * split_perc)
     train_sents, test_sents = tagged_sents[split_size:], tagged_sents[:split_size]
 
-    tagger = ClassifierBasedGermanTagger(train=train_sents)
+    tagger = ClassifierBasedGermanTagger.ClassifierBasedGermanTagger(train=train_sents)
 
     accuracy = tagger.accuracy(test_sents)
     print("Trained the model with accuracy:", accuracy)
@@ -31,43 +31,44 @@ def trainPOSModel():
 '''
     POS Tagging using the preprocessed classifier
 '''
-def POSTagging(text_tokens : list):
 
-    with open('nltk_german_classifier_data.pickle', 'rb') as f:
+
+def POSTagging(text_tokens: list):
+    with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
         tagger = pickle.load(f)
 
     text_tags = tagger.tag(text_tokens)
     return text_tags
 
+
 '''
     POS Tagging using a delivered tagger via parameters
 '''
-def POSTaggingWithTagger(tagger, word : list):
+
+
+def POSTaggingWithTagger(tagger, word: list):
     return tagger.tag(word)
-
-
 
 
 '''
     just test the functions
 '''
-def main():
 
+
+def main():
     # train and save tagger
     # tagger = trainPOSModel()
     # with open('nltk_german_classifier_data.pickle', 'wb') as f:
     #     pickle.dump(tagger, f)
 
-
     # load tagger
-    with open('nltk_german_classifier_data.pickle', 'rb') as f:
+    with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
         tagger = pickle.load(f)
 
-    tags = POSTaggingWithTagger(tagger,"ich war mal größer".split(sep=' '))
+    tags = POSTaggingWithTagger(tagger, "ich war mal größer".split(sep=' '))
     print(tags)
     pass
 
 
 if __name__ == "__main__":
     main()
-

@@ -1,7 +1,11 @@
 import pandas as pd
 import sqlite3
 import text_properties
+import models
 from User import User
+
+
+# from preprocessing.preprocessing import removePunctation, removeStopwords, lemmatizeSentence
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -19,7 +23,9 @@ def mergeDF(articles, posts):
     extract all features from the user's comments
     @return: one user with all features calculated
 '''
-def featureExtraction(df_user : pd.DataFrame) -> list:
+
+
+def featureExtraction(df_user: pd.DataFrame) -> list:
     # user_df is a dataframe with all comments from one user
 
     # make feature extraction
@@ -29,7 +35,7 @@ def featureExtraction(df_user : pd.DataFrame) -> list:
     current_user_features = []
     for index, row in df_user.iterrows():
         text = row['Body']
-        if text == None:
+        if text is None:
             continue
         letters_ratio = text_properties.getLettersRatio(text)
         digit_ration = text_properties.getDigitRatio(text)
@@ -39,7 +45,7 @@ def featureExtraction(df_user : pd.DataFrame) -> list:
 
         features = {
             "ID_Post": row['ID_Post'],
-            "ID_User" : row['ID_User'],
+            "ID_User": row['ID_User'],
             "letter_ratio": letters_ratio,
             "digit_ration": digit_ration,
             "uppercase_ration": uppercase_ration,
@@ -48,18 +54,17 @@ def featureExtraction(df_user : pd.DataFrame) -> list:
         }
         current_user_features.append(features)
 
-
     # return list of feature values for this user
     return current_user_features
-
 
 
 '''
     create the features for all users
     @return: a dataframe with all users as rows and all features as columns
 '''
-def createFeatureMatrix(all_users_df : pd.DataFrame) -> pd.DataFrame:
 
+
+def createFeatureMatrix(all_users_df: pd.DataFrame) -> pd.DataFrame:
     feature_matrix = pd.DataFrame()
     user_ids = all_users_df.ID_User.unique()
     for user_id in user_ids[:10]:
@@ -78,11 +83,6 @@ def main():
     # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
-    features_matrix = createFeatureMatrix(users_df)
-
-
-
     # maybe useful for metadata
     # newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
     # annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
@@ -90,10 +90,18 @@ def main():
     # cross_val_split_df = pd.read_sql_query("SELECT * FROM CrossValSplit", con)
     # categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
 
-    # print(users)
+    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
+    # users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts", con)
+    # models.createModelWihoutFeatureMatrix(users_df)
 
-    # full_df = mergeDF(articles_df, posts_df)
-    # print(full_df)
+    features_matrix = createFeatureMatrix(users_df)
+    print('-' * 42)
+    print('Results for Model with Support Vector Machines are: ')
+    models.createModelWithFeatureMatrix(features_matrix, 'SVM')
+    print('-' * 42)
+    print('-' * 42)
+    print('Results for Model with Multinomial Naive Bayes are: ')
+    models.createModelWithFeatureMatrix(features_matrix, 'MNB')
 
 
 if __name__ == "__main__":
