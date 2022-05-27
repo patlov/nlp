@@ -43,17 +43,19 @@ def word2Vec(texts: list):
           str(model2.wv.similarity(texts[0], texts[1])))
 
 
-
 '''
    TFIDF implementation. corpus are all texts
 '''
 
 
-def TfIdf(corpus: list, ngram_range=(1, 1)):
-    vectorizer = TfidfVectorizer(analyzer="word", norm="l2", ngram_range=ngram_range)
+def TfIdf(corpus: list, ngram_range=(1, 1), min_df: int = 3, asDataframe: bool = True):
+    vectorizer = TfidfVectorizer(ngram_range=ngram_range, min_df=min_df)
     matrix = vectorizer.fit_transform(corpus)
-    tfidf_df = pd.DataFrame(matrix.toarray(), columns=vectorizer.get_feature_names())
-    return tfidf_df
+    if asDataframe is True:
+        tfidf_df = pd.DataFrame(matrix.toarray(), columns=vectorizer.get_feature_names())
+        return tfidf_df
+    else:
+        return matrix
 
 
 '''

@@ -15,16 +15,13 @@ with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
 
 
 def preprocess(text: str, rmStopwords: bool=True, rmPunctation: bool=True, lemmatizeText: bool=True) -> str:
-    if text is None:
-        return ''
     if rmPunctation:
         text = removePunctation(text)
     if rmStopwords:
         text = removeStopwords(text)
     if lemmatizeText:
-        # provisorisch nur die tokenisierung da lemmatisierung dauert ewig
-        text = tokenize(text)
-    #    text = lemmatizeSentence(text, tagger)
+        text = lemmatizeSentence(text, tagger)
+
     return text
 
 

@@ -1,11 +1,10 @@
 import pandas as pd
+import numpy as np
 import sqlite3
 import text_properties
 import models
+import time
 from User import User
-
-
-# from preprocessing.preprocessing import removePunctation, removeStopwords, lemmatizeSentence
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -35,8 +34,7 @@ def featureExtraction(df_user: pd.DataFrame) -> list:
     current_user_features = []
     for index, row in df_user.iterrows():
         text = row['Body']
-        if text is None:
-            continue
+
         letters_ratio = text_properties.getLettersRatio(text)
         digit_ration = text_properties.getDigitRatio(text)
         uppercase_ration = text_properties.getUppercaseRatio(text)
@@ -67,14 +65,19 @@ def featureExtraction(df_user: pd.DataFrame) -> list:
 def createFeatureMatrix(all_users_df: pd.DataFrame) -> pd.DataFrame:
     feature_matrix = pd.DataFrame()
     user_ids = all_users_df.ID_User.unique()
-    for user_id in user_ids[:10]:
+    start = time.time()
+    for user_id in user_ids[:1000]:
         user_subset = all_users_df.loc[all_users_df['ID_User'] == user_id]
         current_user_comments_with_features = featureExtraction(user_subset)
 
         user_comments_feature_matrix = pd.DataFrame(current_user_comments_with_features)
         feature_matrix = feature_matrix.append(user_comments_feature_matrix)
-
+    print("Found in time [s] the feature matrix: " + str(time.time() - start))
     return feature_matrix
+
+
+
+    print(keep_comments)
 
 
 def main():
@@ -91,17 +94,37 @@ def main():
     # categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
 
     users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
-    # users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts", con)
-    # models.createModelWihoutFeatureMatrix(users_df)
+    # remove none and empty entries
+    users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
-    features_matrix = createFeatureMatrix(users_df)
-    print('-' * 42)
-    print('Results for Model with Support Vector Machines are: ')
-    models.createModelWithFeatureMatrix(features_matrix, 'SVM')
-    print('-' * 42)
-    print('-' * 42)
-    print('Results for Model with Multinomial Naive Bayes are: ')
-    models.createModelWithFeatureMatrix(features_matrix, 'MNB')
+    '''
+        uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments
+    '''
+    models.getTopAuthorComments(users_df, 80, 500)
+
+    '''
+        uncomment this to see performance of our system with only preprocessing the texts and using the MNB model, takes some time
+    '''
+    # print('-' * 42)
+    # print('Results for Model without Feature Matrix, but using Countvectorization: ')
+    # print('-' * 42)
+    # use only first 10000 entries because we cannot get enough memory on the machine...
+    # models.createModelWihoutFeatureMatrix(users_df.head(1000))
+
+
+    '''
+        uncomment this to see performance of our SVM, MNB models with our own feature matrix
+    '''
+    # features_matrix = createFeatureMatrix(users_df)
+    # print('-' * 42)
+    # print('Results for Model with Support Vector Machines are: ')
+    # models.createModelWithFeatureMatrix(features_matrix, 'SVM')
+    # print('-' * 42)
+    # print('Results for Model with Multinomial Naive Bayes are: ')
+    # models.createModelWithFeatureMatrix(features_matrix, 'MNB')
+    # print('-' * 42)
+    # print('Results for Model with Linear Regression are: ')
+    # models.createModelWithFeatureMatrix(features_matrix, 'LR')
 
 
 if __name__ == "__main__":
