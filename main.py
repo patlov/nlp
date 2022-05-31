@@ -89,7 +89,8 @@ def startConnection():
 def main():
 
     users_df = startConnection()
-    users_df = preprocess.data_exploration.preprocessingSteps(users_df) # preprocess the data - remove None and authors with < 50 comments
+
+    users_df = preprocess.data_exploration.preprocessingSteps(users_df, plot=False) # preprocess the data - remove None and authors with < 50 comments
 
     '''
         uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments

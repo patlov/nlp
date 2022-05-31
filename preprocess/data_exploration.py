@@ -83,14 +83,14 @@ def getUsersWithMinNumberOfComments(df : pd.DataFrame, min_comments) -> pd.DataF
     return df
 
 
-def preprocessingSteps(users_df : pd.DataFrame):
+def preprocessingSteps(users_df : pd.DataFrame, plot : bool):
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
-    showNrOfCommentsPerUser(users_df)
-    userStats(users_df, "All Users")
+    if plot: showNrOfCommentsPerUser(users_df)
+    if plot: userStats(users_df, "All Users")
 
     users_subset = getUsersWithMinNumberOfComments(users_df, 50)
-    userStats(users_subset, "Only relevant users")
-    showNrOfCommentsPerUserBarChart(users_subset)
+    if plot: userStats(users_subset, "Only relevant users")
+    if plot: showNrOfCommentsPerUserBarChart(users_subset)
     return users_subset
