@@ -4,7 +4,7 @@ import sqlite3
 import text_properties
 import models
 import time
-from User import User
+import preprocess.data_exploration
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -75,27 +75,21 @@ def createFeatureMatrix(all_users_df: pd.DataFrame) -> pd.DataFrame:
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
     return feature_matrix
 
-
-
     print(keep_comments)
 
 
-def main():
+def startConnection():
     con = sqlite3.connect('dataset/corpus.sqlite3')
-
     # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    # maybe useful for metadata
-    # newspaper_staff_df = pd.read_sql_query("SELECT * FROM Newspaper_Staff", con)
-    # annotations_df = pd.read_sql_query("SELECT * FROM Annotations", con)
-    # annotations_consolidated_df = pd.read_sql_query("SELECT * FROM Annotations_consolidated", con)
-    # cross_val_split_df = pd.read_sql_query("SELECT * FROM CrossValSplit", con)
-    # categories_df = pd.read_sql_query("SELECT * FROM Categories", con)
-
     users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
-    # remove none and empty entries
-    users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
+    return users_df
+
+def main():
+
+    users_df = startConnection()
+    users_df = preprocess.data_exploration.preprocessingSteps(users_df) # preprocess the data - remove None and authors with < 50 comments
 
     '''
         uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments
