@@ -9,8 +9,8 @@ import preprocess.data_exploration
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
 
-# Step 1: get all Posts from a specific user-id
-# Step 2: preprocessing von allen posts von einem user
+# Step 1: get all Posts
+# Step 2: preprocessing von allen posts
 # Step 3: feature identification (corr matrix)
 # Step 4: user identifizieren basierend auf writing style
 

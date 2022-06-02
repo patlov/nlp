@@ -1,0 +1,15 @@
+TODO list:
+
+- autoren auf max 50 comments abschneiden
+
+- verschiedene feature matrizen erstellen
+    - stopwords removeal (nlp preprocessing steps) -> vectorization -> feature matrix -> model
+    - stylometry -> model
+
+- verschiedene models erstellen
+    - MNB
+    - SVM
+    - classifier
+    - ...
+
+- zuerst mit 50 comments/autoren die accuracy anschauen -> dann auf 100 comments/autor probieren und accuracy anschauen, ...
