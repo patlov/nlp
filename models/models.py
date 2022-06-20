@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools
 import numpy as np
-from preprocessing import preprocess
+from preprocess.nlp_preprocessing import preprocess
 from vectorization import TfIdf
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer

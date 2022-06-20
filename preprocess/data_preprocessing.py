@@ -82,6 +82,28 @@ def getUsersWithMinNumberOfComments(df : pd.DataFrame, min_comments) -> pd.DataF
     df.drop(df_to_remove.index, inplace=True)
     return df
 
+def cutUsersToEqualCommentSize(users : pd.DataFrame, max_comment : int):
+
+    users_comments_count = {}
+    reduced_users = []
+    for index, row in users.iterrows():
+
+        user_id = row['ID_User']
+        if user_id not in users_comments_count:
+            users_comments_count[user_id] = 0
+        if users_comments_count[user_id] >= max_comment:
+            continue
+        else:
+            reduced_users.append(row)
+            users_comments_count[user_id] += 1
+
+
+    subset_df = pd.DataFrame(reduced_users)
+    subset_df = subset_df.reset_index()
+    return subset_df
+
+
+max_number_comments = 50
 
 def preprocessingSteps(users_df : pd.DataFrame, plot : bool):
     # remove none and empty entries
@@ -90,7 +112,13 @@ def preprocessingSteps(users_df : pd.DataFrame, plot : bool):
     if plot: showNrOfCommentsPerUser(users_df)
     if plot: userStats(users_df, "All Users")
 
-    users_subset = getUsersWithMinNumberOfComments(users_df, 50)
+    users_subset = getUsersWithMinNumberOfComments(users_df, max_number_comments)
     if plot: userStats(users_subset, "Only relevant users")
     if plot: showNrOfCommentsPerUserBarChart(users_subset)
+
+    user_subset = cutUsersToEqualCommentSize(users_subset, max_number_comments)
+    user_subset.to_csv('dataset/preprocessed_corpus'+str(max_number_comments)+'.csv', index=False, sep='|')
     return users_subset
+
+def getPreprocessedCorpus():
+    return pd.read_csv('dataset/preprocessed_corpus'+str(max_number_comments)+'.csv', sep='|')

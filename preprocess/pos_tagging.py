@@ -34,7 +34,7 @@ def trainPOSModel():
 
 
 def POSTagging(text_tokens: list):
-    with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
+    with open('../dataset/nltk_german_classifier_data.pickle', 'rb') as f:
         tagger = pickle.load(f)
 
     text_tags = tagger.tag(text_tokens)
@@ -62,7 +62,7 @@ def main():
     #     pickle.dump(tagger, f)
 
     # load tagger
-    with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
+    with open('../dataset/nltk_german_classifier_data.pickle', 'rb') as f:
         tagger = pickle.load(f)
 
     tags = POSTaggingWithTagger(tagger, "ich war mal größer".split(sep=' '))

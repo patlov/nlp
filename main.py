@@ -1,10 +1,8 @@
 import pandas as pd
-import numpy as np
 import sqlite3
-import text_properties
-import models
+from vectorization import text_properties
 import time
-import preprocess.data_exploration
+import preprocess.data_preprocessing
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -86,16 +84,21 @@ def startConnection():
     users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
     return users_df
 
+USE_CSV = True
+
 def main():
 
-    users_df = startConnection()
-
-    users_df = preprocess.data_exploration.preprocessingSteps(users_df, plot=False) # preprocess the data - remove None and authors with < 50 comments
+    if USE_CSV:
+        users_df = preprocess.data_preprocessing.getPreprocessedCorpus()
+    else:
+        users_df = startConnection()
+        users_df = preprocess.data_preprocessing.preprocessingSteps(users_df, plot=False) # preprocess the data - remove None and authors with < 50 comments
 
     '''
         uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments
     '''
-    models.getTopAuthorComments(users_df, 80, 500)
+    #models.getTopAuthorComments(users_df, 80, 500)
+
 
     '''
         uncomment this to see performance of our system with only preprocessing the texts and using the MNB model, takes some time

@@ -1,16 +1,15 @@
 # first download stopwords
 import nltk
 # nltk.download('stopwords')
-import pos_tagging
+from preprocess import pos_tagging
 import pickle
-import os
 import string
 
 from nltk.corpus import stopwords
 from germalemma import GermaLemma
 
 POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
-with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
+with open('../dataset/nltk_german_classifier_data.pickle', 'rb') as f:
     tagger = pickle.load(f)
 
 
