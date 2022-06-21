@@ -5,6 +5,8 @@ import time
 from tqdm import tqdm
 from enum import Enum
 import utils
+import sys
+from preprocess.nlp_preprocessing import nlp_preprocess_text
 
 class VectorizationType(Enum):
     Stylometry = 1
@@ -78,8 +80,11 @@ def createStylometryFeatures(text: str) -> dict:
     main function to create different types of feature matrix's
     @return: a dataframe with all users as rows and all features as columns
 '''
-def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType) -> pd.DataFrame:
+def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType, preprocess=False, to_csv=False) -> pd.DataFrame:
     feature_matrix = pd.DataFrame()
+
+    # todo nlp preprocessing yes or no?
+
 
     start = time.time()
 
@@ -88,7 +93,10 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType) -> pd.
         tmp_feature_list = []
         for index, row in tqdm(users_df[:1000].iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
             try:
-                features = createStylometryFeatures(row['Body'])
+                text = row['Body']
+                if preprocess:
+                    text = nlp_preprocess_text(text)
+                features = createStylometryFeatures(text)
                 features['ID_Post'] = row['ID_Post']
                 features['ID_User'] = row['ID_User']
                 tmp_feature_list.append(features)
@@ -103,7 +111,10 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType) -> pd.
         tmp_feature_list = []
         for index, row in tqdm(users_df[:1000].iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
             try:
-                features = vectorization.bagOfWords(row['Body']) # add features to dict
+                text = row['Body']
+                if preprocess:
+                    text = nlp_preprocess_text(text)
+                features = vectorization.bagOfWords(text) # add features to dict
                 features['ID_Post'] = row['ID_Post']
                 features['ID_User'] = row['ID_User']
                 tmp_feature_list.append(features)
@@ -125,5 +136,16 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType) -> pd.
 
 
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
+    if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
     return feature_matrix
 
+
+
+def getFeatureMatrix() -> pd.DataFrame:
+    try:
+        print("Reading feature matrix")
+        feature_df = pd.read_csv('dataset/feature_matrix.csv', sep=';')
+        return feature_df
+    except FileNotFoundError:
+        print("[ERROR] You first need to create the CSV file (set USE_FEATURE_CSV to False)", file=sys.stderr)
+        sys.exit()

@@ -1,9 +1,11 @@
 import pandas as pd
 import sqlite3
 from vectorization import feature_matrix
+from models import models
 import preprocess.data_preprocessing
 import argparse
 from vectorization.feature_matrix import VectorizationType
+from models.models import ModelType
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -28,7 +30,10 @@ def startConnection():
     users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
     return users_df
 
-USE_CSV = True
+
+USE_PREPARED_CSV = False
+USE_FEATURE_CSV = False
+FIXED_NUMBER_COMMENTS = 50
 
 def main():
     # parser = argparse.ArgumentParser(description='NLP SS 2022 - 1 Million Post Dataset from derStandard')
@@ -37,52 +42,36 @@ def main():
     # args = parser.parse_args()
 
     print("######################################### STEP 1 - IMPORT DATA ############################################")
-    if USE_CSV:
-        users_df = preprocess.data_preprocessing.getPreparedCorpus()
+    if USE_FEATURE_CSV:
+        pass # just for testing go directly to the model using a predefined feature matrix
+    elif USE_PREPARED_CSV:
+        users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
     else:
         users_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df, plot=False, to_csv=True)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df,FIXED_NUMBER_COMMENTS, plot=False, to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
 
 
-    fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords)
+    if USE_FEATURE_CSV:
+        fm = feature_matrix.getFeatureMatrix()
+    else:
+        fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords, preprocess=False, to_csv=False)
 
 
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
-    '''
-        uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments
-    '''
-    #models.getTopAuthorComments(users_df, 80, 500)
+    models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, print_report=True)
 
+    models.createModelWithFeatureMatrix(fm, ModelType.SVM, print_report=True)
 
-    '''
-        uncomment this to see performance of our system with only preprocessing the texts and using the MNB model, takes some time
-    '''
-    # print('-' * 42)
-    # print('Results for Model without Feature Matrix, but using Countvectorization: ')
-    # print('-' * 42)
-    # use only first 10000 entries because we cannot get enough memory on the machine...
-    # models.createModelWihoutFeatureMatrix(users_df.head(1000))
+    models.createModelWithFeatureMatrix(fm, ModelType.MNB, print_report=True)
 
+    models.createModelWithFeatureMatrix(fm, ModelType.LR, print_report=True)
 
-    '''
-        uncomment this to see performance of our SVM, MNB models with our own feature matrix
-    '''
-    # features_matrix = createFeatureMatrix(users_df)
-    # print('-' * 42)
-    # print('Results for Model with Support Vector Machines are: ')
-    # models.createModelWithFeatureMatrix(features_matrix, 'SVM')
-    # print('-' * 42)
-    # print('Results for Model with Multinomial Naive Bayes are: ')
-    # models.createModelWithFeatureMatrix(features_matrix, 'MNB')
-    # print('-' * 42)
-    # print('Results for Model with Linear Regression are: ')
-    # models.createModelWithFeatureMatrix(features_matrix, 'LR')
 
 
 if __name__ == "__main__":

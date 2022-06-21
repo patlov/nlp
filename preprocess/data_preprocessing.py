@@ -123,8 +123,8 @@ def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
 '''
     prepare data - cut lower and upper limit of comments and export to csv
 '''
-fixed_number_comments = 50
-def dataPreparation(users_df : pd.DataFrame, plot=False, to_csv=False) -> pd.DataFrame:
+
+def dataPreparation(users_df : pd.DataFrame, fixed_number_comments : int, plot=False, to_csv=False) -> pd.DataFrame:
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
@@ -141,17 +141,17 @@ def dataPreparation(users_df : pd.DataFrame, plot=False, to_csv=False) -> pd.Dat
     if plot: userStats(users_subset, "All Users equal comment size")
 
 
-    if to_csv: users_subset.to_csv('dataset/preprocessed_corpus' + str(fixed_number_comments) + '.csv', index=False, sep='|')
+    if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep='|')
     return users_subset
 
 '''
     import csv corpus
 '''
-def getPreparedCorpus() -> pd.DataFrame:
+def getPreparedCorpus(fixed_number_comments : int) -> pd.DataFrame:
     try:
         print("Reading CSV data")
-        users_df = pd.read_csv('dataset/preprocessed_corpus' + str(fixed_number_comments) + '.csv', sep='|')
+        users_df = pd.read_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', sep='|')
         return users_df
     except FileNotFoundError:
-        print("[ERROR] You first need to create the CSV file (set USE_CSV to False)", file=sys.stderr)
+        print("[ERROR] You first need to create the CSV file (set USE_PREPARED_CSV to False)", file=sys.stderr)
         sys.exit()

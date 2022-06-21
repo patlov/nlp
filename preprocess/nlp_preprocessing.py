@@ -1,25 +1,26 @@
 # first download stopwords
-import nltk
-# nltk.download('stopwords')
-from preprocess import pos_tagging
 import pickle
 import string
 
-from nltk.corpus import stopwords
+import nltk
 from germalemma import GermaLemma
+from nltk.corpus import stopwords
+
+# nltk.download('stopwords')
+from preprocess import pos_tagging
+
 
 POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
-with open('../dataset/nltk_german_classifier_data.pickle', 'rb') as f:
+with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
     tagger = pickle.load(f)
 
-
-def preprocess(text: str, rmStopwords: bool=True, rmPunctation: bool=True, lemmatizeText: bool=True) -> str:
+def nlp_preprocess_text(text: str, rmStopwords: bool=True, rmPunctation: bool=True, lemmatizeText: bool=True) -> str:
     if rmPunctation:
         text = removePunctation(text)
     if rmStopwords:
         text = removeStopwords(text)
     if lemmatizeText:
-        text = lemmatizeSentence(text, tagger)
+        text = lemmatizeSentence(text)
 
     return text
 
@@ -63,7 +64,7 @@ def tokenize(text: str):
 '''
 
 
-def lemmatizeSentence(comment: str, tagger):
+def lemmatizeSentence(comment: str):
     # first tokenize and make POS tagging
     tokens = tokenize(comment)
     # if not os.path.exists(POS_TAGGING_GERMAN_PICKLE):
