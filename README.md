@@ -8,18 +8,17 @@ Natural language processing
 
 ## Tasks
 
-### Preprocessing of data
+### Preprocessing
 
-`preprocessing/preprocessing.py`
-
-- functions for
-  - POS tagging
-  - tokenization
-  - lemmatization
-  - stopwords removal
+- NLP Preprocessing: stopwords removal, lematize, ...
+- data Preprocessing: bring the data in a format we want
 
 
-### Vectorization of data
+
+
+
+
+### Vectorization of data (create word embeddings)
 vectorization is the process to converting text into numerical representation, which then can be used for ML
 
 - Types:
@@ -81,4 +80,5 @@ commentar3  | 433         | yy                |345                | 2
 commentar4  | 232         | 3                 |345                | 2
 
 5) ML model aufsetzen - Classification tast. Welche Klasse (User_ID) fällt dieser kommentar aufgrund der eingeschaft des kommentars
+
    - verschiedene models probieren

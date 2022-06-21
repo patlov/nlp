@@ -1,14 +1,17 @@
 TODO list:
 
-- autoren auf max 50 comments abschneiden (done)
+- (done) autoren auf max 50 comments abschneiden
 
 - verschiedene feature matrizen erstellen
-    - stopwords removeal (nlp preprocessing steps) -> vectorization -> feature matrix -> model
-    - stylometry -> model
+    - stopwords removeal (nlp preprocessing steps) -> Vectorization: BagOfWords -> feature matrix -> model
+    - Vectorization: Stylometry -> feature matrix -> model
+    - ....
+    - hier noch mehrere wege erstellen
 
-- verschiedene models erstellen
-    - MNB
-    - SVM
+- verschiedene models erstellen4
+    - DummyClassifier (most frequent) - done
+    - MNB - done
+    - SVM - done
     - classifier
     - ...
 

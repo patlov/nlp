@@ -19,8 +19,6 @@ def mergeDF(articles, posts):
     return pd.merge(articles, posts, on='ID_Article')
 
 
-
-
 def startConnection():
     print("Starting connection to DB")
     con = sqlite3.connect('dataset/corpus.sqlite3')
@@ -36,6 +34,7 @@ USE_FEATURE_CSV = False
 FIXED_NUMBER_COMMENTS = 50
 
 def main():
+    # todo possibly add arguments instead of global vars
     # parser = argparse.ArgumentParser(description='NLP SS 2022 - 1 Million Post Dataset from derStandard')
     # parser.add_argument('--csv',  required=False, type=bool, help='use prepared csv dataset')
     # parser.add_argument('--vec', required=True, help='type of vectorization to create the feature matrix')
@@ -58,7 +57,7 @@ def main():
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
     else:
-        fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords, preprocess=False, to_csv=False)
+        fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords, nlp_preprocess=False, to_csv=False)
 
 
 

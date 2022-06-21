@@ -124,7 +124,7 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
     print("Using",modelType)
     model = None
     if modelType == ModelType.RANDOM:
-        model = DummyClassifier(strategy="most_frequent")
+        model = DummyClassifier(strategy="most_frequent") # baseline model
     elif modelType == ModelType.SVM:
         model = svm.SVC(kernel='poly', degree=2)
     elif modelType == ModelType.MNB:
@@ -132,6 +132,7 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
     elif modelType == ModelType.LR:
         model = LogisticRegression(solver='liblinear', C=10, penalty='l2')
     else:
+        # todo implement NN ?
         assert("Unknown type")
 
     model = model.fit(X_train, y_train)
