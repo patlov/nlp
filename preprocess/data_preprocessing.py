@@ -1,7 +1,11 @@
+import logging
+import sys
+
 import pandas as pd
 from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 '''
     visualize when (time) comments are written
@@ -34,7 +38,9 @@ def showNrOfCommentsPerUser(users_df: pd.DataFrame):
     plt.savefig("assets/comments_per_author2.png")
     plt.clf()
 
-
+'''
+    visualize the number of comments per user as bar chart
+'''
 def showNrOfCommentsPerUserBarChart(users_df : pd.DataFrame):
     users_df_list = users_df.to_dict('records')
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
@@ -50,6 +56,9 @@ def showNrOfCommentsPerUserBarChart(users_df : pd.DataFrame):
     plt.ylabel("Number of Comments")
     plt.savefig("assets/comments_per_author3.png")
 
+'''
+    get user stats of the current dataset
+'''
 def userStats(df : pd.DataFrame, title : str):
     users_df_list = df.to_dict('records')
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
@@ -65,7 +74,11 @@ def userStats(df : pd.DataFrame, title : str):
 
 
 
-def getUsersWithMinNumberOfComments(df : pd.DataFrame, min_comments) -> pd.DataFrame:
+'''
+    remove all users which have less than min_comments of comments
+'''
+def CutUsersLowerLimit(df : pd.DataFrame, min_comments) -> pd.DataFrame:
+    print("Remove users with LESS than " + str(min_comments) + " comments")
     users_df_list = df.to_dict('records')
 
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
@@ -82,11 +95,15 @@ def getUsersWithMinNumberOfComments(df : pd.DataFrame, min_comments) -> pd.DataF
     df.drop(df_to_remove.index, inplace=True)
     return df
 
-def cutUsersToEqualCommentSize(users : pd.DataFrame, max_comment : int):
+
+'''
+    only allow max_comments of comments per user
+'''
+def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
 
     users_comments_count = {}
     reduced_users = []
-    for index, row in users.iterrows():
+    for index, row in tqdm(users.iterrows(), total=users.shape[0], desc="Remove users with MORE than " + str(max_comment) + " comments"):
 
         user_id = row['ID_User']
         if user_id not in users_comments_count:
@@ -97,28 +114,44 @@ def cutUsersToEqualCommentSize(users : pd.DataFrame, max_comment : int):
             reduced_users.append(row)
             users_comments_count[user_id] += 1
 
-
+    print("converting to dataFrame")
     subset_df = pd.DataFrame(reduced_users)
-    subset_df = subset_df.reset_index()
+    subset_df = subset_df.reset_index(drop=True)
     return subset_df
 
 
-max_number_comments = 50
-
-def preprocessingSteps(users_df : pd.DataFrame, plot : bool):
+'''
+    prepare data - cut lower and upper limit of comments and export to csv
+'''
+fixed_number_comments = 50
+def dataPreparation(users_df : pd.DataFrame, plot=False, to_csv=False) -> pd.DataFrame:
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
     if plot: showNrOfCommentsPerUser(users_df)
     if plot: userStats(users_df, "All Users")
 
-    users_subset = getUsersWithMinNumberOfComments(users_df, max_number_comments)
+    # cut users with less than fixed_number_comments
+    users_subset = CutUsersLowerLimit(users_df, fixed_number_comments)
     if plot: userStats(users_subset, "Only relevant users")
     if plot: showNrOfCommentsPerUserBarChart(users_subset)
 
-    user_subset = cutUsersToEqualCommentSize(users_subset, max_number_comments)
-    user_subset.to_csv('dataset/preprocessed_corpus'+str(max_number_comments)+'.csv', index=False, sep='|')
+    # cut users with more than fixed_number_comments
+    users_subset = cutUsersUpperLimit(users_subset, fixed_number_comments)
+    if plot: userStats(users_subset, "All Users equal comment size")
+
+
+    if to_csv: users_subset.to_csv('dataset/preprocessed_corpus' + str(fixed_number_comments) + '.csv', index=False, sep='|')
     return users_subset
 
-def getPreprocessedCorpus():
-    return pd.read_csv('dataset/preprocessed_corpus'+str(max_number_comments)+'.csv', sep='|')
+'''
+    import csv corpus
+'''
+def getPreparedCorpus() -> pd.DataFrame:
+    try:
+        print("Reading CSV data")
+        users_df = pd.read_csv('dataset/preprocessed_corpus' + str(fixed_number_comments) + '.csv', sep='|')
+        return users_df
+    except FileNotFoundError:
+        print("[ERROR] You first need to create the CSV file (set USE_CSV to False)", file=sys.stderr)
+        sys.exit()

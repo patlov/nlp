@@ -2,9 +2,9 @@ import pandas as pd
 import re
 
 
-#
+'''
 # AVERAGE TEXT CALCULATIONS - properties for a list of texts
-#
+'''
 def getAverageTextLength(df: pd.DataFrame):
     return df['Body'].str.len().mean()
 
@@ -21,21 +21,21 @@ def getAverageDigitsRatio(df: pd.DataFrame):
     return ratio_per_comment.mean()
 
 
-# fraction of uppcercase chars in the texts
+# fraction of uppercase chars in the texts
 def getAverageUppercaseRatio(df: pd.DataFrame):
     ratio_per_comment = df['Body'].str.count(r'[A-Z]') / df['Body'].str.len()
     return ratio_per_comment.mean()
 
 
-# fraction of uppcercase chars in the texts
+# fraction of uppercase chars in the texts
 def getAverageWhitespaceRatio(df: pd.DataFrame):
     ratio_per_comment = df['Body'].str.count(r'[ ]') / df['Body'].str.len()
     return ratio_per_comment.mean()
 
 
-#
+'''
 # SINGLE TEXT CALCULATIONS
-#
+'''
 def getLettersRatio(text: str) -> float:
     return sum(1 for c in text if c.isalpha()) / len(text)
 

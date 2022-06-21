@@ -13,24 +13,27 @@ stemmer = PorterStemmer()
 
 nltk.download('stopwords')
 nltk.download('punkt')
+
+
+
+
 '''
     Bag Of Words implementation
 '''
-
-
 def bagOfWords(text: str, ngram_range=(1, 1)):
     CountVec = CountVectorizer(ngram_range=ngram_range)  # to use bigrams ngram_range=(2,2)
     Count_data = CountVec.fit_transform([text])
-    cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names())
-    return cv_dataframe
+
+    # return python dict instead of df
+    # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
+    res = list(map(lambda row:dict(zip(CountVec.get_feature_names_out(),row)),Count_data.toarray()))
+    return res[0]
 
 
 '''
     Word2Vec implementation
     https://www.geeksforgeeks.org/python-word-embedding-using-word2vec/
 '''
-
-
 def word2Vec(texts: list):
     # CBOW (Continous Bag of Words):
     model1 = gensim.models.Word2Vec([texts], min_count=1, vector_size=100, window=5)
@@ -46,8 +49,6 @@ def word2Vec(texts: list):
 '''
    TFIDF implementation. corpus are all texts
 '''
-
-
 def TfIdf(corpus: list, ngram_range=(1, 1), min_df: int = 3, asDataframe: bool = True):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, min_df=min_df)
     matrix = vectorizer.fit_transform(corpus)
@@ -61,8 +62,6 @@ def TfIdf(corpus: list, ngram_range=(1, 1), min_df: int = 3, asDataframe: bool =
 '''
     Just testing the functions
 '''
-
-
 def main():
     # df = bagOfWords("Hallo, ich war mal groß und jetzt bin ich klein. Na und. Was machst du so?", ngram_range=(1,2))
 

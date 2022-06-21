@@ -1,8 +1,9 @@
 import pandas as pd
 import sqlite3
-from vectorization import text_properties
-import time
+from vectorization import feature_matrix
 import preprocess.data_preprocessing
+import argparse
+from vectorization.feature_matrix import VectorizationType
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -16,67 +17,10 @@ def mergeDF(articles, posts):
     return pd.merge(articles, posts, on='ID_Article')
 
 
-'''
-    extract all features from the user's comments
-    @return: one user with all features calculated
-'''
-
-
-def featureExtraction(df_user: pd.DataFrame) -> list:
-    # user_df is a dataframe with all comments from one user
-
-    # make feature extraction
-    average_text_length = text_properties.getAverageTextLength(df_user)
-
-    # go through all comments of a user, calculate the features and return it as dict
-    current_user_features = []
-    for index, row in df_user.iterrows():
-        text = row['Body']
-
-        letters_ratio = text_properties.getLettersRatio(text)
-        digit_ration = text_properties.getDigitRatio(text)
-        uppercase_ration = text_properties.getUppercaseRatio(text)
-        lowercase_ration = text_properties.getLowercaseRatio(text)
-        whitespace_ration = text_properties.getWhitespaceRatio(text)
-
-        features = {
-            "ID_Post": row['ID_Post'],
-            "ID_User": row['ID_User'],
-            "letter_ratio": letters_ratio,
-            "digit_ration": digit_ration,
-            "uppercase_ration": uppercase_ration,
-            "lowercase_ration": lowercase_ration,
-            "whitespace_ration": whitespace_ration
-        }
-        current_user_features.append(features)
-
-    # return list of feature values for this user
-    return current_user_features
-
-
-'''
-    create the features for all users
-    @return: a dataframe with all users as rows and all features as columns
-'''
-
-
-def createFeatureMatrix(all_users_df: pd.DataFrame) -> pd.DataFrame:
-    feature_matrix = pd.DataFrame()
-    user_ids = all_users_df.ID_User.unique()
-    start = time.time()
-    for user_id in user_ids[:1000]:
-        user_subset = all_users_df.loc[all_users_df['ID_User'] == user_id]
-        current_user_comments_with_features = featureExtraction(user_subset)
-
-        user_comments_feature_matrix = pd.DataFrame(current_user_comments_with_features)
-        feature_matrix = feature_matrix.append(user_comments_feature_matrix)
-    print("Found in time [s] the feature matrix: " + str(time.time() - start))
-    return feature_matrix
-
-    print(keep_comments)
 
 
 def startConnection():
+    print("Starting connection to DB")
     con = sqlite3.connect('dataset/corpus.sqlite3')
     # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
@@ -87,12 +31,28 @@ def startConnection():
 USE_CSV = True
 
 def main():
+    # parser = argparse.ArgumentParser(description='NLP SS 2022 - 1 Million Post Dataset from derStandard')
+    # parser.add_argument('--csv',  required=False, type=bool, help='use prepared csv dataset')
+    # parser.add_argument('--vec', required=True, help='type of vectorization to create the feature matrix')
+    # args = parser.parse_args()
 
+    print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_CSV:
-        users_df = preprocess.data_preprocessing.getPreprocessedCorpus()
+        users_df = preprocess.data_preprocessing.getPreparedCorpus()
     else:
         users_df = startConnection()
-        users_df = preprocess.data_preprocessing.preprocessingSteps(users_df, plot=False) # preprocess the data - remove None and authors with < 50 comments
+        # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, plot=False, to_csv=True)
+
+    print("Import finished")
+    print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
+
+
+    fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords)
+
+
+
+    print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
     '''
         uncomment this to see performance of our system with LinearSVC model and top 100 authors and their 500 comments

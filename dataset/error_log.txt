@@ -1,0 +1,4 @@
+Error at BagOfWords for comment 428412::empty vocabulary; perhaps the documents only contain stop words
+Error at BagOfWords for comment 143037::empty vocabulary; perhaps the documents only contain stop words
+Error at BagOfWords for comment 428412::empty vocabulary; perhaps the documents only contain stop words
+Error at BagOfWords for comment 143037::empty vocabulary; perhaps the documents only contain stop words
