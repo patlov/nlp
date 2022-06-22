@@ -29,7 +29,7 @@ def startConnection():
     return users_df
 
 
-USE_PREPARED_CSV = False
+USE_PREPARED_CSV = True
 USE_FEATURE_CSV = False
 FIXED_NUMBER_COMMENTS = 50
 

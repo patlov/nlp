@@ -29,14 +29,13 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType, nlp_pr
     # Stylometry feature extraction
     if type == VectorizationType.Stylometry:
         tmp_feature_list = []
-        for index, row in tqdm(users_df[:1000].iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
             try:
                 text = row['Body']
                 if nlp_preprocess:
                     text = nlp_preprocess_text(text)
-                features = stylometry.createStylometryFeatures(text)
-                features['ID_Post'] = row['ID_Post']
-                features['ID_User'] = row['ID_User']
+                features = {'ID_User' : row['ID_User']}
+                features.update(stylometry.createStylometryFeatures(text))
                 tmp_feature_list.append(features)
             except Exception as e:
                 utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
@@ -47,14 +46,13 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType, nlp_pr
     # BagOfWords feature extraction
     elif type == VectorizationType.BagOfWords:
         tmp_feature_list = []
-        for index, row in tqdm(users_df[:1000].iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
             try:
                 text = row['Body']
                 if nlp_preprocess:
                     text = nlp_preprocess_text(text)
-                features = vectorization.bagOfWords(text) # add features to dict
-                features['ID_Post'] = row['ID_Post']
-                features['ID_User'] = row['ID_User']
+                features = {'ID_User' : row['ID_User']}
+                features.update(vectorization.bagOfWords(text)) # add features to dict
                 tmp_feature_list.append(features)
             except Exception as e:
                 utils.writeToErrorLog("Error at BagOfWords for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
