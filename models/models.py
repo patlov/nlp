@@ -22,6 +22,7 @@ class ModelType(Enum):
     SVM = 2
     MNB = 3
     LR = 4
+    NN = 5
     # add here more
 
 '''
@@ -76,7 +77,7 @@ def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix : ModelTy
     into a multinomial naive bayes algorithm
     @return: void
 '''
-def createModelWihoutFeatureMatrix(users_df: pd.DataFrame):
+def createW2VDeepLearningModel(users_df: pd.DataFrame):
     start = time.time()
 
     users_df['Body'] = users_df.loc[:, 'Body'].apply(lambda x: nlp_preprocess_text(x))

@@ -1,3 +1,5 @@
+from typing import List
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -14,19 +16,31 @@ stemmer = PorterStemmer()
 nltk.download('stopwords')
 nltk.download('punkt')
 
+'''
+    Helper Function to get list of lists of n-grams
+'''
 
 
+def createListOfListOfUnigram(corpus) -> List[List[str]]:
+    lst_corpus = []
+    for string in corpus:
+        lst_words = string.split()
+        lst_grams = [" ".join(lst_words[i:i + 1]) for i in range(0, len(lst_words), 1)]
+        lst_corpus.append(lst_grams)
+    return lst_corpus
 
 '''
     Bag Of Words implementation
 '''
+
+
 def bagOfWords(text: str, ngram_range=(1, 1)):
     CountVec = CountVectorizer(ngram_range=ngram_range)  # to use bigrams ngram_range=(2,2)
     Count_data = CountVec.fit_transform([text])
 
     # return python dict instead of df
     # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
-    res = list(map(lambda row:dict(zip(CountVec.get_feature_names_out(),row)),Count_data.toarray()))
+    res = list(map(lambda row: dict(zip(CountVec.get_feature_names_out(), row)), Count_data.toarray()))
     return res[0]
 
 
@@ -34,34 +48,33 @@ def bagOfWords(text: str, ngram_range=(1, 1)):
     Word2Vec implementation
     https://www.geeksforgeeks.org/python-word-embedding-using-word2vec/
 '''
+
+
 def word2Vec(texts: list):
     # CBOW (Continous Bag of Words):
-    model1 = gensim.models.Word2Vec([texts], min_count=1, vector_size=100, window=5)
-    print("Cosine similarity for BOW (Continous Bag of Words) of sentences: " + texts[0] + ' and ' +
-          texts[1] + ' is: ' + str(model1.wv.similarity(texts[0], texts[1])))
-
-    model2 = gensim.models.Word2Vec([texts], min_count=1, vector_size=100, window=5, sg=1)
-    # Skip Gram
-    print("Cosine similarity for skip gram of sentences: " + texts[0] + ' and ' + texts[1] + ' is: ' +
-          str(model2.wv.similarity(texts[0], texts[1])))
+    model1 = gensim.models.Word2Vec([texts], min_count=1, vector_size=300, window=7, sg=1)
 
 
 '''
    TFIDF implementation. corpus are all texts
 '''
-def TfIdf(corpus: list, ngram_range=(1, 1), min_df: int = 3, asDataframe: bool = True):
-    vectorizer = TfidfVectorizer(ngram_range=ngram_range, min_df=min_df)
-    matrix = vectorizer.fit_transform(corpus)
-    if asDataframe is True:
-        tfidf_df = pd.DataFrame(matrix.toarray(), columns=vectorizer.get_feature_names())
-        return tfidf_df
-    else:
-        return matrix
+
+
+def TfIdf(text: str, ngram_range=(1, 1), min_df: int = 3):
+    tfIdfVectorizer = TfidfVectorizer(ngram_range=ngram_range)
+    Count_data = tfIdfVectorizer.fit_transform([text])
+
+    # return python dict instead of df
+    # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
+    res = list(map(lambda row: dict(zip(tfIdfVectorizer.get_feature_names_out(), row)), Count_data.toarray()))
+    return res[0]
 
 
 '''
     Just testing the functions
 '''
+
+
 def main():
     # df = bagOfWords("Hallo, ich war mal groß und jetzt bin ich klein. Na und. Was machst du so?", ngram_range=(1,2))
 

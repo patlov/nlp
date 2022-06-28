@@ -8,6 +8,7 @@ import utils
 import sys
 from preprocess.nlp_preprocessing import nlp_preprocess_text
 
+
 class VectorizationType(Enum):
     Stylometry = 1
     BagOfWords = 2
@@ -15,13 +16,14 @@ class VectorizationType(Enum):
     TfIdf = 4
 
 
-
-
 '''
     main function to create different types of feature matrix's
     @return: a dataframe with all users as rows and all features as columns
 '''
-def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType, nlp_preprocess=False, to_csv=False) -> pd.DataFrame:
+
+
+def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preprocess=False,
+                  to_csv=False):
     feature_matrix = pd.DataFrame()
 
     start = time.time()
@@ -34,49 +36,60 @@ def createFeatureMatrix(users_df: pd.DataFrame, type : VectorizationType, nlp_pr
                 text = row['Body']
                 if nlp_preprocess:
                     text = nlp_preprocess_text(text)
-                features = {'ID_User' : row['ID_User']}
+                features = {'ID_User': row['ID_User']}
                 features.update(stylometry.createStylometryFeatures(text))
                 tmp_feature_list.append(features)
             except Exception as e:
                 utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
         feature_matrix = pd.DataFrame(tmp_feature_list)
 
-
-
     # BagOfWords feature extraction
     elif type == VectorizationType.BagOfWords:
         tmp_feature_list = []
-        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
+        for index, row in tqdm(users_df[:100].iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
             try:
                 text = row['Body']
                 if nlp_preprocess:
                     text = nlp_preprocess_text(text)
-                features = {'ID_User' : row['ID_User']}
-                features.update(vectorization.bagOfWords(text)) # add features to dict
+                features = {'ID_User': row['ID_User']}
+                features.update(vectorization.bagOfWords(text))  # add features to dict
                 tmp_feature_list.append(features)
             except Exception as e:
                 utils.writeToErrorLog("Error at BagOfWords for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
-        feature_matrix = pd.DataFrame(tmp_feature_list).fillna(0) # fill NaN with 0
-
-
-    # Word2Vec feature extraction
-    elif type == VectorizationType.Word2Vec:
-        # todo implement
-        pass
-
-
+        feature_matrix = pd.DataFrame(tmp_feature_list).fillna(0)  # fill NaN with 0
 
     # TfIdf feature extraction
     elif type == VectorizationType.TfIdf:
-        # todo implement
-        pass
+        tmp_feature_list = []
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
+            try:
+                text = row['Body']
+                if nlp_preprocess:
+                    text = nlp_preprocess_text(text)
+                features = {'ID_User': row['ID_User']}
+                feat = vectorization.TfIdf(text)
+                features.update(vectorization.TfIdf(text))  # add features to dict
+                tmp_feature_list.append(features)
+            except Exception as e:
+                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
+        feature_matrix = pd.DataFrame(tmp_feature_list).fillna(0)  # fill NaN with 0
 
-
+    # Word2Vec list of list
+    elif type == VectorizationType.Word2Vec:
+        cleaned_text = []
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
+            try:
+                text = row['Body']
+                if nlp_preprocess:
+                    text = nlp_preprocess_text(text)  # add features to dict
+                cleaned_text.append(text)
+            except Exception as e:
+                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
+        users_df['cleaned'] = cleaned_text
 
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
     if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
     return feature_matrix
-
 
 
 def getFeatureMatrix() -> pd.DataFrame:

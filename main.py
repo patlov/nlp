@@ -6,6 +6,7 @@ import preprocess.data_preprocessing
 import argparse
 from vectorization.feature_matrix import VectorizationType
 from models.models import ModelType
+from preprocess.nlp_preprocessing import nlp_preprocess_text
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -29,9 +30,11 @@ def startConnection():
     return users_df
 
 
-USE_PREPARED_CSV = True
+USE_PREPARED_CSV = False
 USE_FEATURE_CSV = False
-FIXED_NUMBER_COMMENTS = 50
+FIXED_NUMBER_COMMENTS = 100
+VECTORIZATIONTYPE = VectorizationType.Word2Vec
+
 
 def main():
     # todo possibly add arguments instead of global vars
@@ -42,35 +45,40 @@ def main():
 
     print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_FEATURE_CSV:
-        pass # just for testing go directly to the model using a predefined feature matrix
+        pass  # just for testing go directly to the model using a predefined feature matrix
     elif USE_PREPARED_CSV:
         users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
     else:
         users_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df,FIXED_NUMBER_COMMENTS, plot=False, to_csv=False)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, FIXED_NUMBER_COMMENTS, plot=False,
+                                                                 to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
 
-
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
+    elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
+        feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
+                                     to_csv=False)
     else:
-        fm = feature_matrix.createFeatureMatrix(users_df, VectorizationType.BagOfWords, nlp_preprocess=False, to_csv=False)
-
-
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=False,
+                                          to_csv=False)
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
-    models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, print_report=True)
+    if VECTORIZATIONTYPE != VectorizationType.Word2Vec:
+        models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.SVM, print_report=True)
+        models.createModelWithFeatureMatrix(fm, ModelType.SVM, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.MNB, print_report=True)
+        models.createModelWithFeatureMatrix(fm, ModelType.MNB, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.LR, print_report=True)
-
+        models.createModelWithFeatureMatrix(fm, ModelType.LR, print_report=True)
+    else:
+        print("hi")
+        # models.createW2VDeepLearningModel()
 
 
 if __name__ == "__main__":
