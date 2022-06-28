@@ -2,19 +2,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools
 import numpy as np
-from preprocess.nlp_preprocessing import nlp_preprocess_text
-from vectorization.vectorization import TfIdf
+from vectorization.vectorization import createListOfListOfUnigram
+from vectorization.feature_engineering import createPaddingSequence
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.dummy import DummyClassifier
-from sklearn.svm import LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+from xgboost import XGBClassifier
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from vectorization.feature_matrix import VectorizationType
 from sklearn import svm
-from collections import Counter
 import time
 from enum import Enum
+from models import NN
 
 
 class ModelType(Enum):
@@ -22,12 +25,17 @@ class ModelType(Enum):
     SVM = 2
     MNB = 3
     LR = 4
-    NN = 5
+    MLP = 5
+    XG = 6
+    KNN = 7
     # add here more
+
 
 '''
     creates a classification report (precision, recall, f1-score)
 '''
+
+
 def createClassificationReport(model, x_test, y_test):
     predictions = model.predict(x_test)
     print('THE CLASSIFICATION REPORT: ')
@@ -39,7 +47,9 @@ def createClassificationReport(model, x_test, y_test):
 '''
     plots a confusion matrix
 '''
-def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix : ModelType, normalize=True):
+
+
+def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix: ModelType, normalize=True):
     predictions = model.predict(x_test)
     plt.tight_layout()
     plt.ylabel('True label')
@@ -77,35 +87,23 @@ def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix : ModelTy
     into a multinomial naive bayes algorithm
     @return: void
 '''
+
+
 def createW2VDeepLearningModel(users_df: pd.DataFrame):
-    start = time.time()
+    X = users_df['cleaned'].values
+    y = users_df['ID_User'].values
+    train_comments, test_comments, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-    users_df['Body'] = users_df.loc[:, 'Body'].apply(lambda x: nlp_preprocess_text(x))
-    print("Found in time [s]: " + str(time.time() - start))
+    [x_train, x_test, voc_size] = createPaddingSequence(train_comments, test_comments)
 
-    X_features = users_df['Body']
+    model = NN.createConvolutionalModel(voc_size)
 
-    cv = CountVectorizer()
+    history = model.fit(x_train, y_train, epochs=10, batch_size=10, verbose=1, validation_data=(x_test, y_test))
 
-    X = cv.fit_transform(X_features)
-    y = users_df['ID_User']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
-    model = MultinomialNB()
-    model = model.fit(X_train, y_train)
-
-    print("-" * 21)
-    print("TRAINING ACCURACY: ")
-    print(model.score(X_train, y_train))
-
-    print("-" * 21)
-    print("TESTING VALIDATION ACCURACY: ")
-    print(model.score(X_test, y_test))
-
-    predictions = model.predict(X_test)
-    print("-" * 21)
-    print("PREDICTION ACCURACY IS: ")
-    print(accuracy_score(y_test, predictions))
+    loss, accuracy = model.evaluate(x_train, y_train, verbose=1)
+    print("Training Accuracy: {:.4f}".format(accuracy))
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
+    print("Testing Accuracy:  {:.4f}".format(accuracy))
 
 
 '''
@@ -113,28 +111,32 @@ def createW2VDeepLearningModel(users_df: pd.DataFrame):
     use then the multinomial naive bayes algorithm to classify the comments
     @return: void
 '''
-def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: ModelType, print_report=False, print_cm=False):
-    col = 'ID_User'
-    y = features_matrix[col]
-    X = features_matrix.loc[:, features_matrix.columns != col]
-    classes = features_matrix.ID_User.unique()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+def createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, modelType: ModelType, print_report=False, print_cm=False):
     print("-" * 84)
-    print("Using",modelType)
+    print("Using", modelType)
     model = None
     if modelType == ModelType.RANDOM:
-        model = DummyClassifier(strategy="most_frequent") # baseline model
+        model = DummyClassifier(strategy="most_frequent")  # baseline model
     elif modelType == ModelType.SVM:
         model = svm.SVC(kernel='poly', degree=2)
     elif modelType == ModelType.MNB:
         model = MultinomialNB()
     elif modelType == ModelType.LR:
         model = LogisticRegression(solver='liblinear', C=10, penalty='l2')
+    elif modelType == ModelType.MLP:
+        model = MLPClassifier(random_state=1, solver="adam", hidden_layer_sizes=(12, 12, 12), activation="relu",
+                              early_stopping=True,
+                              n_iter_no_change=1)
+    elif modelType == ModelType.XG:
+        model = XGBClassifier(random_state=42, seed=2, colsample_bytree=0.6, subsample=0.7)
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+    elif modelType == ModelType.KNN:
+        model = KNeighborsClassifier(n_neighbors=7)
     else:
-        # todo implement NN ?
-        assert("Unknown type")
+        assert ("Unknown type")
 
     model = model.fit(X_train, y_train)
 
@@ -146,7 +148,5 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
     print("PREDICTION ACCURACY: ", accuracy_score(y_test, predictions))
     print("-" * 21)
 
-
     if print_report: createClassificationReport(model, X_test, y_test)
-    if print_cm: displayConfusionMatrix(model, X_test, y_test, classes, modelType)
-
+    # if print_cm: displayConfusionMatrix(model, X_test, y_test, classes, modelType)

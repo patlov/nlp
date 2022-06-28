@@ -32,8 +32,9 @@ def startConnection():
 
 USE_PREPARED_CSV = False
 USE_FEATURE_CSV = False
+USE_EXISTING_DF = False
 FIXED_NUMBER_COMMENTS = 100
-VECTORIZATIONTYPE = VectorizationType.Word2Vec
+VECTORIZATIONTYPE = VectorizationType.TfIdf
 
 
 def main():
@@ -59,26 +60,28 @@ def main():
 
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
-    elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
-        feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
-                                     to_csv=False)
     else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=False,
-                                          to_csv=False)
+        [X_train, X_test, y_train, y_test] = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
+                                                                          nlp_preprocess=True, to_csv=False)
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
     if VECTORIZATIONTYPE != VectorizationType.Word2Vec:
-        models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, print_report=True)
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.RANDOM, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.SVM, print_report=True)
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.SVM, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.MNB, print_report=True)
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.MNB, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.LR, print_report=True)
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.LR, print_report=True)
+
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.MLP, print_report=True)
+
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.XG, print_report=True)
+
+        models.createModelWithFeatureMatrix(X_train, X_test, y_train, y_test, ModelType.KNN, print_report=True)
     else:
-        print("hi")
-        # models.createW2VDeepLearningModel()
+        models.createW2VDeepLearningModel(users_df)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 import pandas as pd
-
+from sklearn.model_selection import train_test_split
 from vectorization import vectorization, stylometry
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 import time
 from tqdm import tqdm
 from enum import Enum
@@ -24,12 +26,41 @@ class VectorizationType(Enum):
 
 def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preprocess=False,
                   to_csv=False):
-    feature_matrix = pd.DataFrame()
+    # feature_matrix = pd.DataFrame()
 
     start = time.time()
 
+    # BagOfWords feature extraction
+    if type == VectorizationType.BagOfWords or type == VectorizationType.TfIdf:
+        cleaned_text = []
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0],
+                               desc=f'Preprocessing and generating Training and Testing Set'):
+            try:
+                text = row['Body']
+                if nlp_preprocess:
+                    text = nlp_preprocess_text(text)  # add features to dict
+                cleaned_text.append(text)
+            except Exception as e:
+                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
+        users_df['cleaned'] = cleaned_text
+
+        X = users_df['cleaned'].values
+        y = users_df['ID_User'].values
+
+        train_comments, test_comments, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        if type == VectorizationType.BagOfWords:
+            vectorizer = TfidfVectorizer(ngram_range=(2, 2))
+        else:
+            vectorizer = CountVectorizer(ngram_range=(2, 2))
+        vectorizer.fit(train_comments)
+        train_comments_vec = vectorizer.transform(train_comments)
+        test_comments_vec = vectorizer.transform(test_comments)
+
+        print("Found in time [s] the feature matrix: " + str(time.time() - start))
+        return [train_comments_vec, test_comments_vec, y_train, y_test]
     # Stylometry feature extraction
-    if type == VectorizationType.Stylometry:
+    elif type == VectorizationType.Stylometry:
         tmp_feature_list = []
         for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
             try:
@@ -42,54 +73,19 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preproces
             except Exception as e:
                 utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
         feature_matrix = pd.DataFrame(tmp_feature_list)
+        col = 'ID_User'
+        y = feature_matrix[col]
+        X = feature_matrix.loc[:, feature_matrix.columns != col]
 
-    # BagOfWords feature extraction
-    elif type == VectorizationType.BagOfWords:
-        tmp_feature_list = []
-        for index, row in tqdm(users_df[:100].iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
-            try:
-                text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)
-                features = {'ID_User': row['ID_User']}
-                features.update(vectorization.bagOfWords(text))  # add features to dict
-                tmp_feature_list.append(features)
-            except Exception as e:
-                utils.writeToErrorLog("Error at BagOfWords for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
-        feature_matrix = pd.DataFrame(tmp_feature_list).fillna(0)  # fill NaN with 0
+        classes = feature_matrix.ID_User.unique()
 
-    # TfIdf feature extraction
-    elif type == VectorizationType.TfIdf:
-        tmp_feature_list = []
-        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
-            try:
-                text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)
-                features = {'ID_User': row['ID_User']}
-                feat = vectorization.TfIdf(text)
-                features.update(vectorization.TfIdf(text))  # add features to dict
-                tmp_feature_list.append(features)
-            except Exception as e:
-                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
-        feature_matrix = pd.DataFrame(tmp_feature_list).fillna(0)  # fill NaN with 0
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        return [X_train, X_test, y_train, y_test]
+    # if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
+    else:
+        assert "You should pick a valid Vectorizationtype"
 
-    # Word2Vec list of list
-    elif type == VectorizationType.Word2Vec:
-        cleaned_text = []
-        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
-            try:
-                text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)  # add features to dict
-                cleaned_text.append(text)
-            except Exception as e:
-                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
-        users_df['cleaned'] = cleaned_text
-
-    print("Found in time [s] the feature matrix: " + str(time.time() - start))
-    if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
-    return feature_matrix
+    # return feature_matrix
 
 
 def getFeatureMatrix() -> pd.DataFrame:
@@ -99,4 +95,28 @@ def getFeatureMatrix() -> pd.DataFrame:
         return feature_df
     except FileNotFoundError:
         print("[ERROR] You first need to create the CSV file (set USE_FEATURE_CSV to False)", file=sys.stderr)
+        sys.exit()
+
+
+def preprocessDataFrame(users_df: pd.DataFrame, to_csv: bool = False) -> pd.DataFrame:
+    cleaned_text = []
+    for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Preprocessing Dataframe"):
+        try:
+            text = row['Body']
+            text = nlp_preprocess_text(text)  # add features to dict
+            cleaned_text.append(text)
+        except Exception as e:
+            utils.writeToErrorLog("Error at Preprocessing Dataframe " + str(row['ID_Post']) + "::" + str(e) + "\n")
+    users_df['cleaned'] = cleaned_text
+    if to_csv: users_df.to_csv('dataset/users_df.csv', index=False, sep=';')
+    return users_df
+
+
+def getSavedDF() -> pd.DataFrame:
+    try:
+        print("Reading users dataframe from local drive")
+        feature_df = pd.read_csv('dataset/users_df.csv', sep=';')
+        return feature_df
+    except FileNotFoundError:
+        print("[ERROR] You first need to create the CSV file (set USE_EXISTING_DF to False)", file=sys.stderr)
         sys.exit()

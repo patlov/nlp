@@ -6,6 +6,12 @@ Natural language processing
 ``` Download stopwords first in preprocessing```
 
 
+
+## Possible errors:
+If you receive the error "en_core_web_sm" not found or something similar, please install it via
+```angular2html
+python3 -m spacy download en_core_web_sm
+```
 ## Tasks
 
 ### Preprocessing

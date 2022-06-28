@@ -29,19 +29,35 @@ def createListOfListOfUnigram(corpus) -> List[List[str]]:
         lst_corpus.append(lst_grams)
     return lst_corpus
 
+
 '''
     Bag Of Words implementation
 '''
 
 
-def bagOfWords(text: str, ngram_range=(1, 1)):
+def bagOfWords(text, ngram_range=(1, 1)):
     CountVec = CountVectorizer(ngram_range=ngram_range)  # to use bigrams ngram_range=(2,2)
-    Count_data = CountVec.fit_transform([text])
+    text_vec = CountVec.fit_transform(text)
 
     # return python dict instead of df
     # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
-    res = list(map(lambda row: dict(zip(CountVec.get_feature_names_out(), row)), Count_data.toarray()))
-    return res[0]
+    # res = list(map(lambda row: dict(zip(CountVec.get_feature_names_out(), row)), Count_data.toarray()))
+    return text_vec
+
+
+'''
+   TFIDF implementation. corpus are all texts
+'''
+
+
+def TfIdf(text, ngram_range=(1, 1)):
+    tfIdfVectorizer = TfidfVectorizer(ngram_range=ngram_range)
+    vec_text = tfIdfVectorizer.fit_transform(text)
+
+    # return python dict instead of df
+    # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
+    # res = list(map(lambda row: dict(zip(tfIdfVectorizer.get_feature_names_out(), row)), Count_data.toarray()))
+    return vec_text
 
 
 '''
@@ -53,21 +69,6 @@ def bagOfWords(text: str, ngram_range=(1, 1)):
 def word2Vec(texts: list):
     # CBOW (Continous Bag of Words):
     model1 = gensim.models.Word2Vec([texts], min_count=1, vector_size=300, window=7, sg=1)
-
-
-'''
-   TFIDF implementation. corpus are all texts
-'''
-
-
-def TfIdf(text: str, ngram_range=(1, 1), min_df: int = 3):
-    tfIdfVectorizer = TfidfVectorizer(ngram_range=ngram_range)
-    Count_data = tfIdfVectorizer.fit_transform([text])
-
-    # return python dict instead of df
-    # cv_dataframe = pd.DataFrame(Count_data.toarray(), columns=CountVec.get_feature_names_out())
-    res = list(map(lambda row: dict(zip(tfIdfVectorizer.get_feature_names_out(), row)), Count_data.toarray()))
-    return res[0]
 
 
 '''

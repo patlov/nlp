@@ -5,16 +5,21 @@ import string
 import nltk
 from germalemma import GermaLemma
 from nltk.corpus import stopwords
-
+from HanTa import HanoverTagger as ht
 # nltk.download('stopwords')
 from preprocess import pos_tagging
+import spacy
+nlp = spacy.load('de_core_news_md')
+
+tagger = ht.HanoverTagger('morphmodel_ger.pgz')
+
+# POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
+# with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
+#    tagger = pickle.load(f)
 
 
-POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
-with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
-    tagger = pickle.load(f)
-
-def nlp_preprocess_text(text: str, rmStopwords: bool=True, rmPunctation: bool=True, lemmatizeText: bool=True) -> str:
+def nlp_preprocess_text(text: str, rmStopwords: bool = True, rmPunctation: bool = True,
+                        lemmatizeText: bool = True) -> str:
     if rmPunctation:
         text = removePunctation(text)
     if rmStopwords:
@@ -65,30 +70,12 @@ def tokenize(text: str):
 
 
 def lemmatizeSentence(comment: str):
-    # first tokenize and make POS tagging
-    tokens = tokenize(comment)
-    # if not os.path.exists(POS_TAGGING_GERMAN_PICKLE):
-    #     tagger = pos_tagging.trainPOSModel()
-    #     with open('dataset/nltk_german_classifier_data.pickle', 'wb') as f:
-    #         pickle.dump(tagger, f)
-    # else:
-    #     with open(POS_TAGGING_GERMAN_PICKLE, 'rb') as f:
-    #         tagger = pickle.load(f)
+    # approach using hanta tagger
+    # lemma = [lemma for (word, lemma, pos) in tagger.tag_sent(comment.split())]
+    # return ' '.join(lemma)
 
-    tokens_with_pos = pos_tagging.POSTaggingWithTagger(tagger, tokens)
-
-    # lemmatization
-    words = []
-    lemmatizer = GermaLemma()
-    for i, token_with_pos in enumerate(tokens_with_pos):
-        try:
-            lemmatized = lemmatizer.find_lemma(token_with_pos[0], token_with_pos[1])
-        except ValueError:  # "ich" or other prepositions are not found
-            words.append(token_with_pos[0])  # add the original word
-            continue
-        words.append(lemmatized)
-
-    return ' '.join(words)
+    # approach using spacy
+    return ' '.join([token.lemma_ for token in nlp(comment)])
 
 
 '''

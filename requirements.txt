@@ -5,3 +5,8 @@ nltk
 numpy
 pandas
 scikit_learn
+Hanta
+spacy
+tensorflow
+keras
+xgboost
