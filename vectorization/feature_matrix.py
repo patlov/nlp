@@ -7,7 +7,7 @@ from tqdm import tqdm
 from enum import Enum
 import utils
 import sys
-
+from sklearn.preprocessing import OneHotEncoder
 
 class VectorizationType(Enum):
     Stylometry = 1
@@ -20,7 +20,11 @@ class VectorizationType(Enum):
 def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFrame:
     fm['PositiveVotes'] = users_df['PositiveVotes']
     fm['NegativeVotes'] = users_df['NegativeVotes']
-    fm['WritingTime'] = users_df['WritingTime']
+
+    encoder = OneHotEncoder(handle_unknown='ignore') # one hot encoding for writing style
+    encoder_df = pd.DataFrame(encoder.fit_transform(users_df[['WritingTime']]).toarray())
+    encoder_df.columns = ['WritingTime.Morning', 'WritingTime.Midday', 'WritingTime.Afternoon', 'WritingTime.Evening', 'WritingTime.Night']
+    fm = fm.join(encoder_df)
     return fm
 
 
@@ -28,8 +32,6 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFram
     main function to create different types of feature matrix's
     @return: a dataframe with all users as rows and all features as columns
 '''
-
-
 def getModelInput(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
     feature_matrix = pd.DataFrame()
 

@@ -38,11 +38,6 @@ VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
 def main():
-    # todo possibly add arguments instead of global vars
-    # parser = argparse.ArgumentParser(description='NLP SS 2022 - 1 Million Post Dataset from derStandard')
-    # parser.add_argument('--csv',  required=False, type=bool, help='use prepared csv dataset')
-    # parser.add_argument('--vec', required=True, help='type of vectorization to create the feature matrix')
-    # args = parser.parse_args()
 
     print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_FEATURE_CSV:
@@ -61,11 +56,13 @@ def main():
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
     else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, to_csv=True)
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
+                                          to_csv=True)
 
-    # if USE_METADATA:
-    # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
-    # fm = feature_matrix.addMetadataToMatrix(users_df, fm)
+
+    if USE_METADATA:
+        # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
+        fm = feature_matrix.addMetadataToMatrix(users_df, fm)
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
