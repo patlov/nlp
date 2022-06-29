@@ -1,10 +1,11 @@
 import pandas as pd
 from lexicalrichness import LexicalRichness
 
-
 '''
 # AVERAGE TEXT CALCULATIONS - properties for a list of texts
 '''
+
+
 def getAverageTextLength(df: pd.DataFrame):
     return df['Body'].str.len().mean()
 
@@ -36,6 +37,8 @@ def getAverageWhitespaceRatio(df: pd.DataFrame):
 '''
 # SINGLE TEXT CALCULATIONS
 '''
+
+
 def getLettersRatio(text: str) -> float:
     return sum(1 for c in text if c.isalpha()) / len(text)
 
@@ -56,7 +59,7 @@ def getWhitespaceRatio(text: str) -> float:
     return sum(1 for c in text if c.isspace()) / len(text)
 
 
-def getLexicalRichness(text : str):
+def getLexicalRichness(text: str):
     try:
         lex = LexicalRichness(text)
         herdan = lex.Herdan
@@ -70,16 +73,18 @@ def getLexicalRichness(text : str):
         mtld = 0
     return herdan, summer, maas, mtld
 
-def getSentencesLength(text : str) -> int:
+
+def getSentencesLength(text: str) -> int:
     return len(text.split())
+
 
 '''
     extract stylometry features from text
     @return: the calculated features from one comment
 '''
+
+
 def createStylometryFeatures(text: str) -> dict:
-
-
     letters_ratio = getLettersRatio(text)
     digit_ration = getDigitRatio(text)
     uppercase_ration = getUppercaseRatio(text)
@@ -87,7 +92,6 @@ def createStylometryFeatures(text: str) -> dict:
     whitespace_ration = getWhitespaceRatio(text)
     herdan_diversity, summer_diversity, maas_diversity, lexical_richness = getLexicalRichness(text)
     word_count = getSentencesLength(text)
-
 
     features = {
         "letter_ratio": letters_ratio,
@@ -99,7 +103,7 @@ def createStylometryFeatures(text: str) -> dict:
         "summer_diversity": summer_diversity,
         "maas_diversity": maas_diversity,
         "lexical_richness": lexical_richness,
-        "word_count" : word_count
+        "word_count": word_count
     }
 
     return features

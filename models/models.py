@@ -7,6 +7,8 @@ from keras.layers import Dense
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn import svm
@@ -22,6 +24,8 @@ class ModelType(Enum):
     MNB = 3
     LR = 4
     NN = 5
+    MLP = 6
+    KNN = 7
     # add here more
 
 
@@ -113,15 +117,21 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
     if modelType == ModelType.RANDOM:
         model = DummyClassifier(strategy="most_frequent")  # baseline model
     elif modelType == ModelType.SVM:
-        model = svm.SVC(kernel='poly', degree=2)
+        model = svm.SVC(kernel='poly', degree=2, random_state=42)
     elif modelType == ModelType.MNB:
         model = MultinomialNB()
     elif modelType == ModelType.LR:
-        model = LogisticRegression(solver='liblinear', C=10, penalty='l2')
+        model = LogisticRegression(solver='sag', C=10, penalty='l2', random_state=42)
     elif modelType == ModelType.NN:
         input_dimension = X_train.shape[1]
         X_train = X_train.toarray()
         model = createNNModel(input_dimension)
+    elif modelType == ModelType.MLP:
+        model = MLPClassifier(random_state=1, solver="adam", hidden_layer_sizes=(12, 12, 12), activation="relu",
+                              early_stopping=True,
+                              n_iter_no_change=1)
+    elif modelType == ModelType.KNN:
+        model = KNeighborsClassifier(n_neighbors=7)
     else:
         assert "Unknown type"
 

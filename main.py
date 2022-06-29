@@ -32,13 +32,11 @@ def startConnection():
 
 USE_PREPARED_CSV = True
 USE_FEATURE_CSV = False
-USE_METADATA = True
 FIXED_NUMBER_COMMENTS = 1000
-VECTORIZATIONTYPE = VectorizationType.Stylometry
+VECTORIZATIONTYPE = VectorizationType.TfIdf
 
 
 def main():
-
     print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_FEATURE_CSV:
         pass  # just for testing go directly to the model using a predefined feature matrix
@@ -59,8 +57,7 @@ def main():
         fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
                                           to_csv=True)
 
-
-    if USE_METADATA:
+    if VECTORIZATIONTYPE == VECTORIZATIONTYPE.Stylometry:
         # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
         fm = feature_matrix.addMetadataToMatrix(users_df, fm)
 
@@ -71,7 +68,11 @@ def main():
 
     models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, vecType=VECTORIZATIONTYPE, print_report=True)
 
-    # models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
+
+    models.createModelWithFeatureMatrix(fm, ModelType.MLP,  vecType=VECTORIZATIONTYPE, print_report=True)
+
+    models.createModelWithFeatureMatrix(fm, ModelType.KNN, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.MNB, vecType=VECTORIZATIONTYPE, print_report=True)
 

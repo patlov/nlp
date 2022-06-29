@@ -40,11 +40,11 @@ def TfIdf(text: str, ngram_range=(1, 1), min_df: int = 3):
 '''
 
 
-def getVectorizer(vecType, ngram_range=(2, 2)):
+def getVectorizer(vecType, ngram_range=(1, 3), max_df=0.3, min_df=7):
     if vecType.value == 2:  # bag of words
-        return CountVectorizer(ngram_range=ngram_range)
+        return CountVectorizer(ngram_range=ngram_range, max_df=max_df, min_df=min_df)
     elif vecType.value == 4:  # tfidf
-        return TfidfVectorizer(ngram_range=ngram_range)
+        return TfidfVectorizer(ngram_range=ngram_range, norm="l2", max_df=max_df, min_df=min_df)
 
 
 def main():

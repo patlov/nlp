@@ -1,7 +1,7 @@
 # first download stopwords
 import pickle
 import string
-
+import re
 import nltk
 from germalemma import GermaLemma
 from nltk.corpus import stopwords
@@ -11,11 +11,9 @@ from preprocess import pos_tagging
 import spacy
 nlp = spacy.load('de_core_news_md')
 
-POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
-with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
-    tagger = pickle.load(f)
 
-def nlp_preprocess_text(text: str, rmStopwords: bool=True, rmPunctation: bool=True, lemmatizeText: bool=True) -> str:
+def nlp_preprocess_text(text: str, rmStopwords: bool = True, rmPunctation: bool = True,
+                        lemmatizeText: bool = True) -> str:
     if rmPunctation:
         text = removePunctation(text)
     if rmStopwords:
@@ -66,16 +64,6 @@ def tokenize(text: str):
 
 
 def lemmatizeSentence(comment: str):
-    # first tokenize and make POS tagging
-    tokens = tokenize(comment)
-    # if not os.path.exists(POS_TAGGING_GERMAN_PICKLE):
-    #     tagger = pos_tagging.trainPOSModel()
-    #     with open('dataset/nltk_german_classifier_data.pickle', 'wb') as f:
-    #         pickle.dump(tagger, f)
-    # else:
-    #     with open(POS_TAGGING_GERMAN_PICKLE, 'rb') as f:
-    #         tagger = pickle.load(f)
-
     return ' '.join([token.lemma_ for token in nlp(comment)])
 
 
