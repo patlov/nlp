@@ -30,19 +30,14 @@ def startConnection():
     return users_df
 
 
-USE_PREPARED_CSV = False
+USE_PREPARED_CSV = True
 USE_FEATURE_CSV = False
 USE_METADATA = True
 FIXED_NUMBER_COMMENTS = 1000
-VECTORIZATIONTYPE = VectorizationType.BagOfWords
+VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
 def main():
-    # todo possibly add arguments instead of global vars
-    # parser = argparse.ArgumentParser(description='NLP SS 2022 - 1 Million Post Dataset from derStandard')
-    # parser.add_argument('--csv',  required=False, type=bool, help='use prepared csv dataset')
-    # parser.add_argument('--vec', required=True, help='type of vectorization to create the feature matrix')
-    # args = parser.parse_args()
 
     print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_FEATURE_CSV:
@@ -61,10 +56,10 @@ def main():
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
     elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
                                      to_csv=False)
     else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
                                           to_csv=True)
 
 

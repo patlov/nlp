@@ -51,15 +51,18 @@ def showNrOfCommentsPerUserBarChart(users_df : pd.DataFrame):
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
     author_ids,comment_count = zip(*authors)
 
+
     plt.clf()
-    plt.title("Number of comments per author")
-    plt.stackplot([i for i in range(len(author_ids))], comment_count)
-    plt.ylim(0, 1000)
-    plt.xlim(0,len(comment_count))
-    plt.yticks([y for y in range(0,1000,50)])
-    plt.xlabel("Authors")
-    plt.ylabel("Number of Comments")
-    plt.savefig("assets/comments_per_author3.png")
+    plt.hist()
+
+    # plt.clf()
+    # plt.title("Number of comments per author")
+    # plt.stackplot([i for i in range(len(author_ids))], comment_count)
+    # plt.ylim(0, max(comment_count))
+    # plt.xlim(0,len(comment_count))
+    # plt.xlabel("Authors")
+    # plt.ylabel("Number of Comments")
+    # plt.savefig("assets/comments_per_author3.png")
 
 '''
     get user stats of the current dataset
@@ -153,6 +156,7 @@ def calculateWritingTime(users : pd.DataFrame, plot):
         plt.xlabel("Hours")
         plt.ylabel("Number of Comments")
         plt.savefig("assets/comments_per_hour.png")
+    return users
 
 def doNLPpreprocessing(users : pd.DataFrame):
 
@@ -182,7 +186,7 @@ def dataPreparation(users_df : pd.DataFrame, fixed_number_comments : int, plot=F
     users_subset = cutUsersUpperLimit(users_subset, fixed_number_comments)
     # if plot: userStats(users_subset, "All Users equal comment size")
 
-    # calculateWritingTime(users_df, plot)
+    users_subset = calculateWritingTime(users_subset, plot=False)
     users_subset = doNLPpreprocessing(users_subset)
 
     if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep=';')
