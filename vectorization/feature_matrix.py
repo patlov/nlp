@@ -9,21 +9,22 @@ import utils
 import sys
 from sklearn.preprocessing import OneHotEncoder
 
+
 class VectorizationType(Enum):
     Stylometry = 1
     BagOfWords = 2
     Word2Vec = 3
     TfIdf = 4
-    NN = 5
 
 
 def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFrame:
     fm['PositiveVotes'] = users_df['PositiveVotes']
     fm['NegativeVotes'] = users_df['NegativeVotes']
 
-    encoder = OneHotEncoder(handle_unknown='ignore') # one hot encoding for writing style
+    encoder = OneHotEncoder(handle_unknown='ignore')  # one hot encoding for writing style
     encoder_df = pd.DataFrame(encoder.fit_transform(users_df[['WritingTime']]).toarray())
-    encoder_df.columns = ['WritingTime.Morning', 'WritingTime.Midday', 'WritingTime.Afternoon', 'WritingTime.Evening', 'WritingTime.Night']
+    encoder_df.columns = ['WritingTime.Morning', 'WritingTime.Midday', 'WritingTime.Afternoon', 'WritingTime.Evening',
+                          'WritingTime.Night']
     fm = fm.join(encoder_df)
     return fm
 
@@ -32,6 +33,8 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFram
     main function to create different types of feature matrix's
     @return: a dataframe with all users as rows and all features as columns
 '''
+
+
 def getModelInput(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
     feature_matrix = pd.DataFrame()
 
@@ -50,8 +53,8 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, to_csv=False)
                 utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
         feature_matrix = pd.DataFrame(tmp_feature_list)
 
-    # NN we need only the users_df
-    elif type == VectorizationType.NN or type == VectorizationType.TfIdf or type == VectorizationType.BagOfWords:
+    # we only need user_df because vectorization happens later on
+    elif type == VectorizationType.TfIdf or type == VectorizationType.BagOfWords:
         feature_matrix = users_df
 
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
