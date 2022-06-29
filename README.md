@@ -14,7 +14,10 @@ Natural language processing
 - data Preprocessing: bring the data in a format we want
 
 
-
+## Possible errors:
+If you receive the error "de_core_news_md" not found or something similar, please install it via
+```angular2html
+python3 -m spacy download de_core_news_md
 
 
 

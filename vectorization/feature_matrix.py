@@ -6,7 +6,7 @@ from tqdm import tqdm
 from enum import Enum
 import utils
 import sys
-from preprocess.nlp_preprocessing import nlp_preprocess_text
+
 
 
 class VectorizationType(Enum):
@@ -16,12 +16,18 @@ class VectorizationType(Enum):
     TfIdf = 4
 
 
+def addMetadataToMatrix(users_df : pd.DataFrame, fm : pd.DataFrame) -> pd.DataFrame:
+
+    fm['PositiveVotes'] = users_df['PositiveVotes']
+    fm['NegativeVotes'] = users_df['NegativeVotes']
+    fm['WritingTime'] = users_df['WritingTime']
+    return fm
+
+
 '''
     main function to create different types of feature matrix's
     @return: a dataframe with all users as rows and all features as columns
 '''
-
-
 def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preprocess=False,
                   to_csv=False):
     feature_matrix = pd.DataFrame()
@@ -34,8 +40,6 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preproces
         for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
             try:
                 text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)
                 features = {'ID_User': row['ID_User']}
                 features.update(stylometry.createStylometryFeatures(text))
                 tmp_feature_list.append(features)
@@ -46,11 +50,9 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preproces
     # BagOfWords feature extraction
     elif type == VectorizationType.BagOfWords:
         tmp_feature_list = []
-        for index, row in tqdm(users_df[:100].iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating BagOfWords"):
             try:
                 text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)
                 features = {'ID_User': row['ID_User']}
                 features.update(vectorization.bagOfWords(text))  # add features to dict
                 tmp_feature_list.append(features)
@@ -64,10 +66,7 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preproces
         for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
             try:
                 text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)
                 features = {'ID_User': row['ID_User']}
-                feat = vectorization.TfIdf(text)
                 features.update(vectorization.TfIdf(text))  # add features to dict
                 tmp_feature_list.append(features)
             except Exception as e:
@@ -77,14 +76,12 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, nlp_preproces
     # Word2Vec list of list
     elif type == VectorizationType.Word2Vec:
         cleaned_text = []
-        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating TfIdf"):
+        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Word2Vec"):
             try:
                 text = row['Body']
-                if nlp_preprocess:
-                    text = nlp_preprocess_text(text)  # add features to dict
                 cleaned_text.append(text)
             except Exception as e:
-                utils.writeToErrorLog("Error at TfIdf for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
+                utils.writeToErrorLog("Error at Word2Vec for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
         users_df['cleaned'] = cleaned_text
 
     print("Found in time [s] the feature matrix: " + str(time.time() - start))

@@ -26,14 +26,15 @@ def startConnection():
     # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
     # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
 
-    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body FROM Posts ORDER BY ID_User", con)
+    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body, CreatedAt, PositiveVotes, NegativeVotes FROM Posts ORDER BY ID_User", con)
     return users_df
 
 
 USE_PREPARED_CSV = False
 USE_FEATURE_CSV = False
-FIXED_NUMBER_COMMENTS = 100
-VECTORIZATIONTYPE = VectorizationType.Word2Vec
+USE_METADATA = True
+FIXED_NUMBER_COMMENTS = 1000
+VECTORIZATIONTYPE = VectorizationType.BagOfWords
 
 
 def main():
@@ -51,8 +52,8 @@ def main():
     else:
         users_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df, FIXED_NUMBER_COMMENTS, plot=False,
-                                                                 to_csv=False)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, FIXED_NUMBER_COMMENTS, plot=True,
+                                                                 to_csv=True)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
@@ -60,11 +61,16 @@ def main():
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
     elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
-        feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
                                      to_csv=False)
     else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=False,
-                                          to_csv=False)
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, nlp_preprocess=True,
+                                          to_csv=True)
+
+
+    if USE_METADATA:
+        # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
+        fm = feature_matrix.addMetadataToMatrix(users_df, fm)
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 

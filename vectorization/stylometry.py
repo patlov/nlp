@@ -1,5 +1,5 @@
 import pandas as pd
-
+from lexicalrichness import LexicalRichness
 
 
 '''
@@ -56,43 +56,22 @@ def getWhitespaceRatio(text: str) -> float:
     return sum(1 for c in text if c.isspace()) / len(text)
 
 
-'''
-    extract all features from the user's comments
-    @return: one user with all features calculated
-'''
-def createStylometryFeaturesPerUser(df_user: pd.DataFrame) -> list:
-    # user_df is a dataframe with all comments from one user
+def getLexicalRichness(text : str):
+    try:
+        lex = LexicalRichness(text)
+        herdan = lex.Herdan
+        summer = lex.Summer
+        maas = lex.Maas
+        mtld = lex.mtld()
+    except:
+        herdan = 0
+        summer = 0
+        maas = 0
+        mtld = 0
+    return herdan, summer, maas, mtld
 
-    # make feature extraction
-    average_text_length = getAverageTextLength(df_user)
-
-    # go through all comments of a user, calculate the features and return it as dict
-    current_user_features = []
-    for index, row in df_user.iterrows():
-        text = row['Body']
-
-        letters_ratio = getLettersRatio(text)
-        digit_ration = getDigitRatio(text)
-        uppercase_ration = getUppercaseRatio(text)
-        lowercase_ration = getLowercaseRatio(text)
-        whitespace_ration = getWhitespaceRatio(text)
-
-        # todo add here further stylometry features, specially vocabulary richness measures
-
-        features = {
-            "ID_Post": row['ID_Post'],
-            "ID_User": row['ID_User'],
-            "letter_ratio": letters_ratio,
-            "digit_ration": digit_ration,
-            "uppercase_ration": uppercase_ration,
-            "lowercase_ration": lowercase_ration,
-            "whitespace_ration": whitespace_ration
-        }
-        current_user_features.append(features)
-
-    # return list of feature values for this user
-    return current_user_features
-
+def getSentencesLength(text : str) -> int:
+    return len(text.split())
 
 '''
     extract stylometry features from text
@@ -106,13 +85,21 @@ def createStylometryFeatures(text: str) -> dict:
     uppercase_ration = getUppercaseRatio(text)
     lowercase_ration = getLowercaseRatio(text)
     whitespace_ration = getWhitespaceRatio(text)
+    herdan_diversity, summer_diversity, maas_diversity, lexical_richness = getLexicalRichness(text)
+    word_count = getSentencesLength(text)
+
 
     features = {
         "letter_ratio": letters_ratio,
-        "digit_ration": digit_ration,
-        "uppercase_ration": uppercase_ration,
-        "lowercase_ration": lowercase_ration,
-        "whitespace_ration": whitespace_ration
+        "digit_ratio": digit_ration,
+        "uppercase_ratio": uppercase_ration,
+        "lowercase_ratio": lowercase_ration,
+        "whitespace_ratio": whitespace_ration,
+        "herdan_diversity": herdan_diversity,
+        "summer_diversity": summer_diversity,
+        "maas_diversity": maas_diversity,
+        "lexical_richness": lexical_richness,
+        "word_count" : word_count
     }
 
     return features

@@ -6,12 +6,17 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+from enum import Enum
+from datetime import datetime
+from preprocess.nlp_preprocessing import nlp_preprocess_text
 
-'''
-    visualize when (time) comments are written
-'''
-def showCommentTime(users_df: pd.DataFrame):
-    pass
+class WritingTime(Enum):
+    Morning = 1
+    Midday = 2
+    Afternoon = 3
+    Evening = 4
+    Night = 5
+
 
 
 '''
@@ -120,28 +125,67 @@ def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
     return subset_df
 
 
+def calculateWritingTime(users : pd.DataFrame, plot):
+
+    writing_time_list = []
+    writing_hour_list = []
+    for index, row  in users.iterrows():
+        date = datetime.strptime(row['CreatedAt'], '%Y-%m-%d %H:%M:%S.%f')
+        writing_hour_list.append(date.hour)
+        if date.hour >= 6 and date.hour < 11:
+            writing_time_list.append(WritingTime.Morning)
+        elif date.hour >= 11 and date.hour < 14:
+            writing_time_list.append(WritingTime.Midday)
+        elif date.hour >= 14 and date.hour < 18:
+            writing_time_list.append(WritingTime.Afternoon)
+        elif date.hour >= 18 and date.hour < 23:
+            writing_time_list.append(WritingTime.Evening)
+        elif date.hour == 23 or date.hour < 6:
+            writing_time_list.append(WritingTime.Night)
+        else:
+            assert(str(date) + " date not possible")
+    users['WritingTime'] = writing_time_list
+
+    if plot:
+        plt.hist(writing_hour_list, bins=24)
+        plt.title("Number of comments for each hour")
+        plt.xticks([y for y in range(0, 24, 1)])
+        plt.xlabel("Hours")
+        plt.ylabel("Number of Comments")
+        plt.savefig("assets/comments_per_hour.png")
+
+def doNLPpreprocessing(users : pd.DataFrame):
+
+    for index, row in tqdm(users.iterrows(), total=users.shape[0], desc="Do NLP Preprocessing (stemming/Lemmatization/stopwords removal)"):
+        text = nlp_preprocess_text(row['Body'])
+        users.at[index, 'Body'] = text
+
+    return users
+
+
 '''
     prepare data - cut lower and upper limit of comments and export to csv
 '''
-
 def dataPreparation(users_df : pd.DataFrame, fixed_number_comments : int, plot=False, to_csv=False) -> pd.DataFrame:
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
-    if plot: showNrOfCommentsPerUser(users_df)
-    if plot: userStats(users_df, "All Users")
+    # if plot: showNrOfCommentsPerUser(users_df)
+    # if plot: userStats(users_df, "All Users")
 
     # cut users with less than fixed_number_comments
     users_subset = CutUsersLowerLimit(users_df, fixed_number_comments)
-    if plot: userStats(users_subset, "Only relevant users")
-    if plot: showNrOfCommentsPerUserBarChart(users_subset)
+    # if plot: userStats(users_subset, "Only relevant users")
+    # if plot: showNrOfCommentsPerUserBarChart(users_subset)
 
     # cut users with more than fixed_number_comments
     users_subset = cutUsersUpperLimit(users_subset, fixed_number_comments)
-    if plot: userStats(users_subset, "All Users equal comment size")
+    # if plot: userStats(users_subset, "All Users equal comment size")
 
+    # calculateWritingTime(users_df, plot)
+    users_subset = doNLPpreprocessing(users_subset)
 
-    if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep='|')
+    if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep=';')
     return users_subset
 
 '''
@@ -150,7 +194,7 @@ def dataPreparation(users_df : pd.DataFrame, fixed_number_comments : int, plot=F
 def getPreparedCorpus(fixed_number_comments : int) -> pd.DataFrame:
     try:
         print("Reading CSV data")
-        users_df = pd.read_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', sep='|')
+        users_df = pd.read_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', sep=';')
         return users_df
     except FileNotFoundError:
         print("[ERROR] You first need to create the CSV file (set USE_PREPARED_CSV to False)", file=sys.stderr)

@@ -8,7 +8,8 @@ from nltk.corpus import stopwords
 
 # nltk.download('stopwords')
 from preprocess import pos_tagging
-
+import spacy
+nlp = spacy.load('de_core_news_md')
 
 POS_TAGGING_GERMAN_PICKLE = 'dataset/nltk_german_classifier_data.pickle'
 with open('dataset/nltk_german_classifier_data.pickle', 'rb') as f:
@@ -75,20 +76,7 @@ def lemmatizeSentence(comment: str):
     #     with open(POS_TAGGING_GERMAN_PICKLE, 'rb') as f:
     #         tagger = pickle.load(f)
 
-    tokens_with_pos = pos_tagging.POSTaggingWithTagger(tagger, tokens)
-
-    # lemmatization
-    words = []
-    lemmatizer = GermaLemma()
-    for i, token_with_pos in enumerate(tokens_with_pos):
-        try:
-            lemmatized = lemmatizer.find_lemma(token_with_pos[0], token_with_pos[1])
-        except ValueError:  # "ich" or other prepositions are not found
-            words.append(token_with_pos[0])  # add the original word
-            continue
-        words.append(lemmatized)
-
-    return ' '.join(words)
+    return ' '.join([token.lemma_ for token in nlp(comment)])
 
 
 '''
