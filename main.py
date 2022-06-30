@@ -1,5 +1,7 @@
 import pandas as pd
 import sqlite3
+import sys
+import preprocess.data_preprocessing
 from vectorization import feature_matrix
 from models import models
 import preprocess.data_preprocessing
@@ -9,14 +11,20 @@ from models.models import ModelType
 
 def startConnection():
     print("Starting connection to DB")
-    con = sqlite3.connect('dataset/corpus.sqlite3')
+    try:
+        con = sqlite3.connect('dataset/corpus.sqlite3')
+    except:
+        print("[ERROR] You need to download the dataset from " +
+              "https://ofai.github.io/million-post-corpus/#data-set-description", file=sys.stderr)
+        sys.exit()
     articles_df = pd.read_sql_query("SELECT ID_Article, Path FROM Articles", con)
 
-    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body, ID_Article, CreatedAt, PositiveVotes, NegativeVotes FROM Posts", con)
+    users_df = pd.read_sql_query(
+        "SELECT ID_Post, ID_User, Body, ID_Article, CreatedAt, PositiveVotes, NegativeVotes FROM Posts", con)
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = False # for debugging, use a CSV version of the users_df created earlier
+USE_PREPARED_CSV = True # for debugging, use a CSV version of the users_df created earlier
 USE_FEATUREMATRIX_CSV = False # for debugging, use a CSV version of the feature_matrix created earlier
 FIXED_NUMBER_COMMENTS = 1000
 
@@ -34,8 +42,8 @@ def main():
     else:
         users_df, articles_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS,
-                                                                 plot=False, to_csv=False)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS, plot=False,
+                                                                 to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
@@ -52,7 +60,7 @@ def main():
         # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
         fm = feature_matrix.addMetadataToMatrix(users_df, fm)
         fm = feature_matrix.normalizeFeatureMatrix(fm)
-        #feature_matrix.saveFeatureMatrix(fm)
+        # feature_matrix.saveFeatureMatrix(fm)
     else:
         users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
         fm = users_df
@@ -60,13 +68,13 @@ def main():
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
     # if VECTORIZATIONTYPE == VectorizationType.Stylometry:
-        # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
+    # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, vecType=VECTORIZATIONTYPE, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.SVC, vecType=VECTORIZATIONTYPE, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.MLP,  vecType=VECTORIZATIONTYPE, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.MLP, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.KNN, vecType=VECTORIZATIONTYPE, print_report=True)
 

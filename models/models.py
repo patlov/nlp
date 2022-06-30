@@ -20,7 +20,7 @@ from vectorization.vectorization import getVectorizer
 
 class ModelType(Enum):
     RANDOM = 1
-    SVM = 2
+    SVC = 2
     MNB = 3
     LR = 4
     NN = 5
@@ -109,7 +109,7 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
     model = None
     if modelType == ModelType.RANDOM:
         model = DummyClassifier(strategy="most_frequent")  # baseline model
-    elif modelType == ModelType.SVM:
+    elif modelType == ModelType.SVC:
         model = svm.SVC(kernel='poly', degree=2, random_state=42)
     elif modelType == ModelType.MNB:
         model = MultinomialNB()
