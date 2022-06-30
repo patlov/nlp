@@ -25,8 +25,9 @@ def startConnection():
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = False
-USE_FEATUREMATRIX_CSV = True # just for testing and jump directly to models using a predefined feature_matrix
+USE_PREPARED_CSV = True
+USE_FEATUREMATRIX_CSV = False
+USE_METADATA = True
 FIXED_NUMBER_COMMENTS = 1000
 VECTORIZATIONTYPE = VectorizationType.Stylometry
 
@@ -42,7 +43,7 @@ def main():
         users_df, articles_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
         users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS, plot=False,
-                                                                 to_csv=True)
+                                                                 to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
@@ -66,8 +67,8 @@ def main():
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
-    # if VECTORIZATIONTYPE == VectorizationType.NN:
-    # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
+    # if VECTORIZATIONTYPE == VectorizationType.Stylometry:
+        # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, vecType=VECTORIZATIONTYPE, print_report=True)
 
