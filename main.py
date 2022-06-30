@@ -25,16 +25,15 @@ def startConnection():
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = False
-USE_FEATURE_CSV = False
-USE_METADATA = True
+USE_PREPARED_CSV = True
+USE_FEATUREMATRIX_CSV = False # just for testing and jump directly to models using a predefined feature_matrix
 FIXED_NUMBER_COMMENTS = 1000
 VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
 def main():
     print("######################################### STEP 1 - IMPORT DATA ############################################")
-    if USE_FEATURE_CSV:
+    if USE_FEATUREMATRIX_CSV:
         pass  # just for testing go directly to the model using a predefined feature matrix
     elif USE_PREPARED_CSV:
         users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
@@ -42,21 +41,23 @@ def main():
         users_df, articles_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
         users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS, plot=False,
-                                                                 to_csv=False)
+                                                                 to_csv=True)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
 
-    if USE_FEATURE_CSV:
-        fm = feature_matrix.getFeatureMatrix()
-    elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,to_csv=False)
-    else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, to_csv=True)
-
     if VECTORIZATIONTYPE == VECTORIZATIONTYPE.Stylometry:
-        # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
-        fm = feature_matrix.addMetadataToMatrix(users_df, fm)
+        # for other vectorizations the features matrix is calculated directly at the model creation
+
+        if USE_FEATUREMATRIX_CSV:
+            fm = feature_matrix.getFeatureMatrix()
+        else:
+            fm = feature_matrix.createFeatureMatrix(users_df, VECTORIZATIONTYPE, to_csv=False)
+
+            # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
+            fm = feature_matrix.addMetadataToMatrix(users_df, fm)
+            fm = feature_matrix.normalizeFeatureMatrix(fm)
+
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 

@@ -29,19 +29,22 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFram
     fm = fm.join(encoder_df)
 
     # topics
-    # todo unique topics - und dann entweder auch one hot encoden oder categorical feature mit zahl
-    # todo halt schauen ob wir wirklich alle topics nehmen oder nur die besten
+    topics_df = pd.DataFrame(encoder.fit_transform(users_df[['Topic']]).toarray())
+    column_labels = [ "topic"+ str(i) for i in range(topics_df.shape[1])]
+    topics_df.columns = column_labels
+    fm = fm.join(topics_df)
 
     return fm
 
 
-'''
-    main function to create different types of feature matrix's
-    @return: a dataframe with all users as rows and all features as columns
-'''
-def getModelInput(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
-    feature_matrix = pd.DataFrame()
 
+def createFeatureMatrix(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
+    """
+        main function to create different types of feature matrix's
+        @return: a dataframe with all users as rows and all features as columns
+    """
+
+    feature_matrix = pd.DataFrame()
     start = time.time()
 
     # Stylometry feature extraction
@@ -64,6 +67,11 @@ def getModelInput(users_df: pd.DataFrame, type: VectorizationType, to_csv=False)
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
     if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
     return feature_matrix
+
+def normalizeFeatureMatrix(featureMatrix : pd.DataFrame) -> pd.DataFrame:
+    return (featureMatrix-featureMatrix.min())/(featureMatrix.max()-featureMatrix.min())
+
+
 
 
 def covertTextToNumeric(x_train, x_test, features=30000):

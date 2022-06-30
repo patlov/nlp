@@ -132,15 +132,15 @@ def calculateWritingTime(comment):
 
     date = datetime.strptime(comment['CreatedAt'], '%Y-%m-%d %H:%M:%S.%f')
     if date.hour >= 6 and date.hour < 11:
-        comment['WritingTime'] = WritingTime.Morning
+        comment['WritingTime'] = str(WritingTime.Morning)
     elif date.hour >= 11 and date.hour < 14:
-        comment['WritingTime'] = WritingTime.Midday
+        comment['WritingTime'] = str(WritingTime.Midday)
     elif date.hour >= 14 and date.hour < 18:
-        comment['WritingTime'] = WritingTime.Afternoon
+        comment['WritingTime'] = str(WritingTime.Afternoon)
     elif date.hour >= 18 and date.hour < 23:
-        comment['WritingTime'] = WritingTime.Evening
+        comment['WritingTime'] = str(WritingTime.Evening)
     elif date.hour == 23 or date.hour < 6:
-        comment['WritingTime'] = WritingTime.Night
+        comment['WritingTime'] = str(WritingTime.Night)
     else:
         assert(str(date) + " date not possible")
 
@@ -168,7 +168,9 @@ def findArticleTopic(comment, articles : pd.DataFrame):
 '''
     prepare data - cut lower and upper limit of comments and export to csv
 '''
-def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_number_comments : int, plot=False, to_csv=False) -> pd.DataFrame:
+def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_number_comments : int,
+                    plot=False, to_csv=False) -> pd.DataFrame:
+
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
@@ -186,7 +188,8 @@ def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_n
 
     users_subset['WritingTime'] = ''
     users_subset['Topic'] = ''
-    for index, comment in tqdm(users_subset.iterrows(), total=users_subset.shape[0], desc="NLP Preprocessing && calculate WritingTime && findArticleTopic"):
+    for index, comment in tqdm(users_subset.iterrows(), total=users_subset.shape[0],
+                               desc="NLP Preprocessing && calculate WritingTime && findArticleTopic"):
 
         comment = calculateWritingTime(comment)
         comment = doNLPpreprocessing(comment)
