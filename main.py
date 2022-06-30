@@ -25,16 +25,17 @@ def startConnection():
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = True
-USE_FEATUREMATRIX_CSV = False # just for testing and jump directly to models using a predefined feature_matrix
+USE_PREPARED_CSV = False
+USE_FEATUREMATRIX_CSV = True # just for testing and jump directly to models using a predefined feature_matrix
 FIXED_NUMBER_COMMENTS = 1000
 VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
 def main():
     print("######################################### STEP 1 - IMPORT DATA ############################################")
+
     if USE_FEATUREMATRIX_CSV:
-        pass  # just for testing go directly to the model using a predefined feature matrix
+        pass
     elif USE_PREPARED_CSV:
         users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
     else:
@@ -50,14 +51,18 @@ def main():
         # for other vectorizations the features matrix is calculated directly at the model creation
 
         if USE_FEATUREMATRIX_CSV:
+            users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
             fm = feature_matrix.getFeatureMatrix()
         else:
-            fm = feature_matrix.createFeatureMatrix(users_df, VECTORIZATIONTYPE, to_csv=False)
+            fm = feature_matrix.createFeatureMatrix(users_df, VECTORIZATIONTYPE, to_csv=True)
 
-            # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
-            fm = feature_matrix.addMetadataToMatrix(users_df, fm)
-            fm = feature_matrix.normalizeFeatureMatrix(fm)
-
+        # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
+        fm = feature_matrix.addMetadataToMatrix(users_df, fm)
+        fm = feature_matrix.normalizeFeatureMatrix(fm)
+        #feature_matrix.saveFeatureMatrix(fm)
+    else:
+        users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
+        fm = users_df
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 

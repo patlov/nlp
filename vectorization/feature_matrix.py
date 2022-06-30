@@ -17,11 +17,11 @@ class VectorizationType(Enum):
     TfIdf = 4
 
 
-def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFrame:
+def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame):
     fm['PositiveVotes'] = users_df['PositiveVotes']
     fm['NegativeVotes'] = users_df['NegativeVotes']
 
-    # one hot encoding for writing style
+    # one hot encoding for writing time
     encoder = OneHotEncoder(handle_unknown='ignore')
     encoder_df = pd.DataFrame(encoder.fit_transform(users_df[['WritingTime']]).toarray())
     encoder_df.columns = ['WritingTime.Morning', 'WritingTime.Midday', 'WritingTime.Afternoon', 'WritingTime.Evening',
@@ -38,38 +38,41 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame) -> pd.DataFram
 
 
 
+
 def createFeatureMatrix(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
     """
         main function to create different types of feature matrix's
         @return: a dataframe with all users as rows and all features as columns
     """
 
-    feature_matrix = pd.DataFrame()
     start = time.time()
 
-    # Stylometry feature extraction
-    if type == VectorizationType.Stylometry:
-        tmp_feature_list = []
-        for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
-            try:
-                text = row['Body']
-                features = {'ID_User': row['ID_User']}
-                features.update(stylometry.createStylometryFeatures(text))
-                tmp_feature_list.append(features)
-            except Exception as e:
-                utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
-        feature_matrix = pd.DataFrame(tmp_feature_list)
+    tmp_feature_list = []
+    for index, row in tqdm(users_df.iterrows(), total=users_df.shape[0], desc="Calculating Stylometry"):
+        try:
+            text = row['Body']
+            features = {'ID_User': row['ID_User']}
+            features.update(stylometry.createStylometryFeatures(text))
+            tmp_feature_list.append(features)
+        except Exception as e:
+            utils.writeToErrorLog("Error at stylometry for comment " + str(row['ID_Post']) + "::" + str(e) + "\n")
+    feature_matrix = pd.DataFrame(tmp_feature_list)
 
-    # we only need user_df because vectorization happens later on
-    elif type == VectorizationType.TfIdf or type == VectorizationType.BagOfWords:
-        feature_matrix = users_df
 
     print("Found in time [s] the feature matrix: " + str(time.time() - start))
-    if to_csv: feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
+    if to_csv: saveFeatureMatrix(feature_matrix)
     return feature_matrix
 
+
+def saveFeatureMatrix(feature_matrix : pd.DataFrame):
+    feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
+
 def normalizeFeatureMatrix(featureMatrix : pd.DataFrame) -> pd.DataFrame:
-    return (featureMatrix-featureMatrix.min())/(featureMatrix.max()-featureMatrix.min())
+    user_id_col = featureMatrix["ID_User"]
+
+    normalized_matrix = (featureMatrix-featureMatrix.min())/(featureMatrix.max()-featureMatrix.min())
+    normalized_matrix['ID_User'] = user_id_col
+    return normalized_matrix
 
 
 
