@@ -13,11 +13,14 @@ from sklearn.preprocessing import OneHotEncoder
 class VectorizationType(Enum):
     Stylometry = 1
     BagOfWords = 2
-    Word2Vec = 3
     TfIdf = 4
 
 
+
 def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame):
+    """
+        take the metadata of a comment from users_df and add it to the feature_matrix
+    """
     fm['PositiveVotes'] = users_df['PositiveVotes']
     fm['NegativeVotes'] = users_df['NegativeVotes']
 
@@ -28,7 +31,7 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame):
                           'WritingTime.Night']
     fm = fm.join(encoder_df)
 
-    # topics
+    # topics one-hot-encoded
     topics_df = pd.DataFrame(encoder.fit_transform(users_df[['Topic']]).toarray())
     column_labels = [ "topic"+ str(i) for i in range(topics_df.shape[1])]
     topics_df.columns = column_labels
@@ -39,9 +42,9 @@ def addMetadataToMatrix(users_df: pd.DataFrame, fm: pd.DataFrame):
 
 
 
-def createFeatureMatrix(users_df: pd.DataFrame, type: VectorizationType, to_csv=False):
+def createFeatureMatrix(users_df: pd.DataFrame, to_csv=False):
     """
-        main function to create different types of feature matrix's
+        main function to create the feature matrix for stylometry
         @return: a dataframe with all users as rows and all features as columns
     """
 
@@ -67,9 +70,9 @@ def createFeatureMatrix(users_df: pd.DataFrame, type: VectorizationType, to_csv=
 def saveFeatureMatrix(feature_matrix : pd.DataFrame):
     feature_matrix.to_csv('dataset/feature_matrix.csv', index=False, sep=';')
 
+
 def normalizeFeatureMatrix(featureMatrix : pd.DataFrame) -> pd.DataFrame:
     user_id_col = featureMatrix["ID_User"]
-
     normalized_matrix = (featureMatrix-featureMatrix.min())/(featureMatrix.max()-featureMatrix.min())
     normalized_matrix['ID_User'] = user_id_col
     return normalized_matrix
@@ -90,6 +93,9 @@ def covertTextToNumeric(x_train, x_test, features=30000):
 
 
 def getFeatureMatrix() -> pd.DataFrame:
+    """
+        import the feature matrix from earlier
+    """
     try:
         print("Reading feature matrix")
         feature_df = pd.read_csv('dataset/feature_matrix.csv', sep=';')

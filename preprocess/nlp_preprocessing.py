@@ -1,19 +1,19 @@
-# first download stopwords
-import pickle
-import string
-import re
-import nltk
-from germalemma import GermaLemma
-from nltk.corpus import stopwords
 
+import string
+import nltk
+from nltk.corpus import stopwords
 # nltk.download('stopwords')
-from preprocess import pos_tagging
+
 import spacy
 nlp = spacy.load('de_core_news_md')
 
 
+
 def nlp_preprocess_text(text: str, rmStopwords: bool = True, rmPunctation: bool = True,
                         lemmatizeText: bool = True) -> str:
+    """
+        main function to do all nlp preprocessing steps to a given text
+    """
     if rmPunctation:
         text = removePunctation(text)
     if rmStopwords:
@@ -24,61 +24,35 @@ def nlp_preprocess_text(text: str, rmStopwords: bool = True, rmPunctation: bool 
     return text
 
 
-'''
-    Remove stopwords like 'aber', 'und', ... 
-'''
-
 
 def removeStopwords(comment: str):
+    """
+        Remove stopwords like 'aber', 'und', ...
+    """
     stops = set(stopwords.words("german"))
     return " ".join([word for word in comment.split() if word not in stops])
-    # cleaned_comment = []
-    # for word in comment.split():
-    #    if word not in stops:
-    #        cleaned_comment.append(word)
-    # return " ".join(cleaned_comment)
-
-
-'''
-    Remove sentence endings like '.' or '!'
-'''
 
 
 def removePunctation(text: str):
+    """
+        Remove sentence endings like '.' or '!'
+    """
     nopunct = [char for char in text if char not in string.punctuation]
     return ''.join(nopunct)
 
 
-'''
-    Split a sentence into words
-'''
-
-
 def tokenize(text: str):
+    """
+        Split a sentence into words
+    """
     return nltk.word_tokenize(text)
 
 
-'''
-    Lemmatization of words - convert e.g. "Ich war mal größer" to -> "Ich sein mal groß"
-'''
-
 
 def lemmatizeSentence(comment: str):
+    """
+        Lemmatization of words - convert e.g. "Ich war mal größer" to -> "Ich sein mal groß"
+    """
     return ' '.join([token.lemma_ for token in nlp(comment)])
 
 
-'''
-    Just testing the functions
-'''
-
-
-def main():
-    # lem_tok = lemmatizeSentence("Hallo, ich war mal größer")
-    # print(lem_tok)
-    text = removeStopwords("Hallo, ich war mal groß und jetzt bin ich klein. Na und. Was machst du so?")
-    print(text)
-    pass
-
-
-if __name__ == "__main__":
-    main()

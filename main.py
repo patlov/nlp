@@ -3,17 +3,8 @@ import sqlite3
 from vectorization import feature_matrix
 from models import models
 import preprocess.data_preprocessing
-import argparse
 from vectorization.feature_matrix import VectorizationType
 from models.models import ModelType
-
-
-# GOAL: try to identify specific posters on their writing style (or additional metadata)
-
-# Step 1: get all Posts
-# Step 2: preprocessing von allen posts
-# Step 3: feature identification (corr matrix)
-# Step 4: user identifizieren basierend auf writing style
 
 
 def startConnection():
@@ -25,10 +16,11 @@ def startConnection():
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = True
-USE_FEATUREMATRIX_CSV = False
-USE_METADATA = True
+USE_PREPARED_CSV = False # for debugging, use a CSV version of the users_df created earlier
+USE_FEATUREMATRIX_CSV = False # for debugging, use a CSV version of the feature_matrix created earlier
 FIXED_NUMBER_COMMENTS = 1000
+
+""" Change here the type of vectorization you want to aplly """
 VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
@@ -42,20 +34,20 @@ def main():
     else:
         users_df, articles_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS, plot=False,
-                                                                 to_csv=False)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS,
+                                                                 plot=False, to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
 
     if VECTORIZATIONTYPE == VECTORIZATIONTYPE.Stylometry:
-        # for other vectorizations the features matrix is calculated directly at the model creation
+        # for other vectorizations the feature matrix is calculated directly at the model creation
 
         if USE_FEATUREMATRIX_CSV:
             users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
             fm = feature_matrix.getFeatureMatrix()
         else:
-            fm = feature_matrix.createFeatureMatrix(users_df, VECTORIZATIONTYPE, to_csv=True)
+            fm = feature_matrix.createFeatureMatrix(users_df, to_csv=True)
 
         # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
         fm = feature_matrix.addMetadataToMatrix(users_df, fm)

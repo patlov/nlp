@@ -1,4 +1,3 @@
-import logging
 import sys
 
 import pandas as pd
@@ -19,10 +18,10 @@ class WritingTime(Enum):
 
 
 
-'''
-    visualize the number of comments per user
-'''
 def showNrOfCommentsPerUser(users_df: pd.DataFrame):
+    """
+        visualize the number of comments per user
+    """
 
     users_df_list = users_df.to_dict('records')
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
@@ -43,31 +42,30 @@ def showNrOfCommentsPerUser(users_df: pd.DataFrame):
     plt.savefig("assets/comments_per_author2.png")
     plt.clf()
 
-'''
-    visualize the number of comments per user as bar chart
-'''
+
 def showNrOfCommentsPerUserBarChart(users_df : pd.DataFrame):
+    """
+        visualize the number of comments per user as bar chart
+    """
+
     users_df_list = users_df.to_dict('records')
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
     author_ids,comment_count = zip(*authors)
 
-
     plt.clf()
-    plt.hist()
+    plt.title("Number of comments per author")
+    plt.stackplot([i for i in range(len(author_ids))], comment_count)
+    plt.ylim(0, max(comment_count))
+    plt.xlim(0,len(comment_count))
+    plt.xlabel("Authors")
+    plt.ylabel("Number of Comments")
+    plt.savefig("assets/comments_per_author3.png")
 
-    # plt.clf()
-    # plt.title("Number of comments per author")
-    # plt.stackplot([i for i in range(len(author_ids))], comment_count)
-    # plt.ylim(0, max(comment_count))
-    # plt.xlim(0,len(comment_count))
-    # plt.xlabel("Authors")
-    # plt.ylabel("Number of Comments")
-    # plt.savefig("assets/comments_per_author3.png")
 
-'''
-    get user stats of the current dataset
-'''
 def userStats(df : pd.DataFrame, title : str):
+    """
+        get user stats of the current dataset
+    """
     users_df_list = df.to_dict('records')
     authors = Counter([user_['ID_User'] for user_ in users_df_list]).most_common()
     author_ids,comment_count = zip(*authors)
@@ -82,10 +80,11 @@ def userStats(df : pd.DataFrame, title : str):
 
 
 
-'''
-    remove all users which have less than min_comments of comments
-'''
+
 def CutUsersLowerLimit(df : pd.DataFrame, min_comments) -> pd.DataFrame:
+    """
+        remove all users which have less than min_comments of comments
+    """
     print("Remove users with LESS than " + str(min_comments) + " comments")
     users_df_list = df.to_dict('records')
 
@@ -104,10 +103,11 @@ def CutUsersLowerLimit(df : pd.DataFrame, min_comments) -> pd.DataFrame:
     return df
 
 
-'''
-    only allow max_comments of comments per user
-'''
+
 def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
+    """
+    only allow max_comments of comments per user
+    """
 
     users_comments_count = {}
     reduced_users = []
@@ -129,6 +129,9 @@ def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
 
 
 def calculateWritingTime(comment):
+    """
+        categorize the comment creation time into own Enum
+    """
 
     date = datetime.strptime(comment['CreatedAt'], '%Y-%m-%d %H:%M:%S.%f')
     if date.hour >= 6 and date.hour < 11:
@@ -147,6 +150,9 @@ def calculateWritingTime(comment):
     return comment
 
 def doNLPpreprocessing(comment):
+    """
+        wrapper to do nlp preprocessing at a given text
+    """
 
     text = nlp_preprocess_text(comment['Body'])
     comment['Body'] = text
@@ -154,6 +160,9 @@ def doNLPpreprocessing(comment):
 
 
 def findArticleTopic(comment, articles : pd.DataFrame):
+    """
+        find the topic of the article, were the comment was posted
+    """
 
     this_article = articles.loc[articles['ID_Article'] == comment['ID_Article']]
     topics_steps = this_article['Path'].to_string().split('/')
@@ -165,11 +174,16 @@ def findArticleTopic(comment, articles : pd.DataFrame):
         comment['Topic'] = ""
     return comment
 
-'''
-    prepare data - cut lower and upper limit of comments and export to csv
-'''
+
 def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_number_comments : int,
                     plot=False, to_csv=False) -> pd.DataFrame:
+    """
+        prepare data - cut lower and upper limit of comments
+        show statistics
+        extract metadata
+        do NLP preprocessing
+        export to csv
+    """
 
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
@@ -199,10 +213,11 @@ def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_n
     if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep=';')
     return users_subset
 
-'''
-    import csv corpus
-'''
+
 def getPreparedCorpus(fixed_number_comments : int) -> pd.DataFrame:
+    """
+        import csv corpus
+    """
     try:
         print("Reading CSV data")
         users_df = pd.read_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', sep=';')

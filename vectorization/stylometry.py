@@ -37,8 +37,6 @@ def getAverageWhitespaceRatio(df: pd.DataFrame):
 '''
 # SINGLE TEXT CALCULATIONS
 '''
-
-
 def getLettersRatio(text: str) -> float:
     return sum(1 for c in text if c.isalpha()) / len(text)
 
@@ -78,13 +76,13 @@ def getSentencesLength(text: str) -> int:
     return len(text.split())
 
 
-'''
-    extract stylometry features from text
-    @return: the calculated features from one comment
-'''
-
 
 def createStylometryFeatures(text: str) -> dict:
+    """
+        extract stylometry features from text
+        @return: the calculated features from one comment
+    """
+
     letters_ratio = getLettersRatio(text)
     digit_ration = getDigitRatio(text)
     uppercase_ration = getUppercaseRatio(text)

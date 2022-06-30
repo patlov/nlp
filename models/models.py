@@ -26,15 +26,13 @@ class ModelType(Enum):
     NN = 5
     MLP = 6
     KNN = 7
-    # add here more
 
-
-'''
-    creates a classification report (precision, recall, f1-score)
-'''
 
 
 def createClassificationReport(model, x_test, y_test):
+    """
+        creates a classification report (precision, recall, f1-score)
+    """
     predictions = model.predict(x_test)
     print('THE CLASSIFICATION REPORT: ')
     print(classification_report(y_test, predictions))
@@ -52,12 +50,10 @@ def createNNModel(input_dimension: int):
     return model
 
 
-'''
-    plots a confusion matrix
-'''
-
-
 def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix: ModelType, typeOfFeatureExtraction: str):
+    """
+        plots a confusion matrix
+    """
     predictions = model.predict(x_test)
     plt.tight_layout()
     plt.ylabel('True label')
