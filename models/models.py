@@ -46,7 +46,7 @@ def createNNModel(input_dimension: int):
     model = Sequential()
     model.add(Dense(12, input_dim=input_dimension, activation='relu'))
     model.add(Dense(8, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(1, activation='softmax'))
     model.compile(loss="binary_crossentropy", optimizer='adam', metrics=["accuracy"])
     model.summary()
     return model
@@ -57,48 +57,45 @@ def createNNModel(input_dimension: int):
 '''
 
 
-def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix: ModelType, normalize=True):
+def displayConfusionMatrix(model, x_test, y_test, classes, titleSuffix: ModelType, typeOfFeatureExtraction: str):
     predictions = model.predict(x_test)
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
     cm = confusion_matrix(y_test, predictions)
-    # plt.figure()
+    plt.figure(figsize=(15, 15))
 
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
+    cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix ' + titleSuffix.name)
+    plt.title('Confusion Matrix ' + titleSuffix.name + ' ' + typeOfFeatureExtraction)
     plt.colorbar()
     tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
+    plt.xticks(tick_marks, classes, rotation=45, fontsize=9)
+    plt.yticks(tick_marks, classes, fontsize=9)
 
-    fmt = '.2f' if normalize else 'd'
+    fmt = '.2f'
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, format(cm[i, j], fmt), horizontalalignment="center",
+        plt.text(j, i, format(cm[i, j], fmt), horizontalalignment="center", fontsize=8,
                  color="white" if cm[i, j] > thresh else "black")
     plt.show()
 
 
-'''
-    creates a model using our feature matrix, where we already have generated numerical features for every comment and 
-    use then the multinomial naive bayes algorithm to classify the comments
-    @return: void
-'''
-
-
-def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: ModelType, vecType: VectorizationType, print_report=False,
+def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: ModelType, vecType: VectorizationType,
+                                 print_report=False,
                                  print_cm=False):
+    """
+        creates a model using our feature matrix, where we already have generated numerical features for every comment
+        and use then the multinomial naive bayes algorithm to classify the comments
+        @return: void
+    """
     col = 'ID_User'
     y = features_matrix[col]
     X = features_matrix.loc[:, features_matrix.columns != col]
+    if vecType == modelType.NN:
+        X = (X - X.mean()) / X.std()
     classes = features_matrix.ID_User.unique()
 
     if vecType == VectorizationType.TfIdf or vecType == VectorizationType.BagOfWords:
@@ -124,7 +121,8 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
         model = LogisticRegression(solver='sag', C=10, penalty='l2', random_state=42)
     elif modelType == ModelType.NN:
         input_dimension = X_train.shape[1]
-        X_train = X_train.toarray()
+        if vecType == VectorizationType.TfIdf or vecType == VectorizationType.BagOfWords:
+            X_train = X_train.toarray()
         model = createNNModel(input_dimension)
     elif modelType == ModelType.MLP:
         model = MLPClassifier(random_state=1, solver="adam", hidden_layer_sizes=(12, 12, 12), activation="relu",
@@ -154,4 +152,4 @@ def createModelWithFeatureMatrix(features_matrix: pd.DataFrame, modelType: Model
         print("-" * 21)
 
     if print_report: createClassificationReport(model, X_test, y_test)
-    if print_cm: displayConfusionMatrix(model, X_test, y_test, classes, modelType)
+    if print_cm: displayConfusionMatrix(model, X_test, y_test, classes, modelType, vecType.name)

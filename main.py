@@ -25,7 +25,7 @@ def startConnection():
     return users_df, articles_df
 
 
-USE_PREPARED_CSV = False
+USE_PREPARED_CSV = True
 USE_FEATURE_CSV = False
 USE_METADATA = True
 FIXED_NUMBER_COMMENTS = 1000
@@ -60,18 +60,18 @@ def main():
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
-    # if VECTORIZATIONTYPE == VectorizationType.NN:
-    # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
+    # if VECTORIZATIONTYPE == VectorizationType.Stylometry:
+        # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, vecType=VECTORIZATIONTYPE, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
+    # models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.MLP,  vecType=VECTORIZATIONTYPE, print_report=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.KNN, vecType=VECTORIZATIONTYPE, print_report=True)
 
-    models.createModelWithFeatureMatrix(fm, ModelType.MNB, vecType=VECTORIZATIONTYPE, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.MNB, vecType=VECTORIZATIONTYPE, print_report=True, print_cm=True)
 
     models.createModelWithFeatureMatrix(fm, ModelType.LR, vecType=VECTORIZATIONTYPE, print_report=True)
 
