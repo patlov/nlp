@@ -16,21 +16,17 @@ from preprocess.nlp_preprocessing import nlp_preprocess_text
 # Step 3: feature identification (corr matrix)
 # Step 4: user identifizieren basierend auf writing style
 
-def mergeDF(articles, posts):
-    return pd.merge(articles, posts, on='ID_Article')
-
 
 def startConnection():
     print("Starting connection to DB")
     con = sqlite3.connect('dataset/corpus.sqlite3')
-    # articles_df = pd.read_sql_query("SELECT * FROM Articles", con)
-    # posts_df = pd.read_sql_query("SELECT * FROM Posts", con)
+    articles_df = pd.read_sql_query("SELECT ID_Article, Path FROM Articles", con)
 
-    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body, CreatedAt, PositiveVotes, NegativeVotes FROM Posts ORDER BY ID_User", con)
-    return users_df
+    users_df = pd.read_sql_query("SELECT ID_Post, ID_User, Body, ID_Article, CreatedAt, PositiveVotes, NegativeVotes FROM Posts", con)
+    return users_df, articles_df
 
 
-USE_PREPARED_CSV = True
+USE_PREPARED_CSV = False
 USE_FEATURE_CSV = False
 USE_METADATA = True
 FIXED_NUMBER_COMMENTS = 1000
@@ -45,10 +41,10 @@ def main():
     elif USE_PREPARED_CSV:
         users_df = preprocess.data_preprocessing.getPreparedCorpus(FIXED_NUMBER_COMMENTS)
     else:
-        users_df = startConnection()
+        users_df, articles_df = startConnection()
         # preprocess the data - remove None and authors with < 50 comments and cut all authors to 50 comments
-        users_df = preprocess.data_preprocessing.dataPreparation(users_df, FIXED_NUMBER_COMMENTS, plot=True,
-                                                                 to_csv=True)
+        users_df = preprocess.data_preprocessing.dataPreparation(users_df, articles_df, FIXED_NUMBER_COMMENTS, plot=False,
+                                                                 to_csv=False)
 
     print("Import finished")
     print("########################## STEP 2 - CREATE WORD EMBEDDINGS / VECTORIZATION ################################")
@@ -56,11 +52,9 @@ def main():
     if USE_FEATURE_CSV:
         fm = feature_matrix.getFeatureMatrix()
     elif VECTORIZATIONTYPE == VectorizationType.Word2Vec:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
-                                     to_csv=False)
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,to_csv=False)
     else:
-        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE,
-                                          to_csv=True)
+        fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, to_csv=True)
 
 
     if USE_METADATA:

@@ -128,66 +128,70 @@ def cutUsersUpperLimit(users : pd.DataFrame, max_comment : int):
     return subset_df
 
 
-def calculateWritingTime(users : pd.DataFrame, plot):
+def calculateWritingTime(comment):
 
-    writing_time_list = []
-    writing_hour_list = []
-    for index, row  in users.iterrows():
-        date = datetime.strptime(row['CreatedAt'], '%Y-%m-%d %H:%M:%S.%f')
-        writing_hour_list.append(date.hour)
-        if date.hour >= 6 and date.hour < 11:
-            writing_time_list.append(WritingTime.Morning)
-        elif date.hour >= 11 and date.hour < 14:
-            writing_time_list.append(WritingTime.Midday)
-        elif date.hour >= 14 and date.hour < 18:
-            writing_time_list.append(WritingTime.Afternoon)
-        elif date.hour >= 18 and date.hour < 23:
-            writing_time_list.append(WritingTime.Evening)
-        elif date.hour == 23 or date.hour < 6:
-            writing_time_list.append(WritingTime.Night)
-        else:
-            assert(str(date) + " date not possible")
-    users['WritingTime'] = writing_time_list
+    date = datetime.strptime(comment['CreatedAt'], '%Y-%m-%d %H:%M:%S.%f')
+    if date.hour >= 6 and date.hour < 11:
+        comment['WritingTime'] = WritingTime.Morning
+    elif date.hour >= 11 and date.hour < 14:
+        comment['WritingTime'] = WritingTime.Midday
+    elif date.hour >= 14 and date.hour < 18:
+        comment['WritingTime'] = WritingTime.Afternoon
+    elif date.hour >= 18 and date.hour < 23:
+        comment['WritingTime'] = WritingTime.Evening
+    elif date.hour == 23 or date.hour < 6:
+        comment['WritingTime'] = WritingTime.Night
+    else:
+        assert(str(date) + " date not possible")
 
-    if plot:
-        plt.hist(writing_hour_list, bins=24)
-        plt.title("Number of comments for each hour")
-        plt.xticks([y for y in range(0, 24, 1)])
-        plt.xlabel("Hours")
-        plt.ylabel("Number of Comments")
-        plt.savefig("assets/comments_per_hour.png")
-    return users
+    return comment
 
-def doNLPpreprocessing(users : pd.DataFrame):
+def doNLPpreprocessing(comment):
 
-    for index, row in tqdm(users.iterrows(), total=users.shape[0], desc="Do NLP Preprocessing (stemming/Lemmatization/stopwords removal)"):
-        text = nlp_preprocess_text(row['Body'])
-        users.at[index, 'Body'] = text
+    text = nlp_preprocess_text(comment['Body'])
+    comment['Body'] = text
+    return comment
 
-    return users
 
+def findArticleTopic(comment, articles : pd.DataFrame):
+
+    this_article = articles.loc[articles['ID_Article'] == comment['ID_Article']]
+    topics_steps = this_article['Path'].to_string().split('/')
+    if len(topics_steps) >= 2:
+        comment['Topic'] = topics_steps[1]
+    elif len(topics_steps) == 1:
+        comment['Topic'] = topics_steps[0]
+    else:
+        comment['Topic'] = ""
+    return comment
 
 '''
     prepare data - cut lower and upper limit of comments and export to csv
 '''
-def dataPreparation(users_df : pd.DataFrame, fixed_number_comments : int, plot=False, to_csv=False) -> pd.DataFrame:
+def dataPreparation(users_df : pd.DataFrame, articles_df : pd.DataFrame, fixed_number_comments : int, plot=False, to_csv=False) -> pd.DataFrame:
     # remove none and empty entries
     users_df = users_df.replace(to_replace=['None', ''], value=np.nan).dropna()
 
-    # if plot: showNrOfCommentsPerUser(users_df)
-    # if plot: userStats(users_df, "All Users")
+    if plot: showNrOfCommentsPerUser(users_df)
+    if plot: userStats(users_df, "All Users")
 
     # cut users with less than fixed_number_comments
     users_subset = CutUsersLowerLimit(users_df, fixed_number_comments)
-    # if plot: userStats(users_subset, "Only relevant users")
-    # if plot: showNrOfCommentsPerUserBarChart(users_subset)
+    if plot: userStats(users_subset, "Only relevant users")
+    if plot: showNrOfCommentsPerUserBarChart(users_subset)
 
     # cut users with more than fixed_number_comments
     users_subset = cutUsersUpperLimit(users_subset, fixed_number_comments)
-    # if plot: userStats(users_subset, "All Users equal comment size")
+    if plot: userStats(users_subset, "All Users equal comment size")
 
-    users_subset = calculateWritingTime(users_subset, plot=False)
-    users_subset = doNLPpreprocessing(users_subset)
+    users_subset['WritingTime'] = ''
+    users_subset['Topic'] = ''
+    for index, comment in tqdm(users_subset.iterrows(), total=users_subset.shape[0], desc="NLP Preprocessing && calculate WritingTime && findArticleTopic"):
+
+        comment = calculateWritingTime(comment)
+        comment = doNLPpreprocessing(comment)
+        comment = findArticleTopic(comment, articles_df)
+        users_subset.at[index] = comment
 
     if to_csv: users_subset.to_csv('dataset/prepared_corpus' + str(fixed_number_comments) + '.csv', index=False, sep=';')
     return users_subset

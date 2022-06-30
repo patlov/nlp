@@ -21,10 +21,16 @@ def addMetadataToMatrix(users_df : pd.DataFrame, fm : pd.DataFrame) -> pd.DataFr
     fm['PositiveVotes'] = users_df['PositiveVotes']
     fm['NegativeVotes'] = users_df['NegativeVotes']
 
-    encoder = OneHotEncoder(handle_unknown='ignore') # one hot encoding for writing style
+    # one hot encoding for writing style
+    encoder = OneHotEncoder(handle_unknown='ignore')
     encoder_df = pd.DataFrame(encoder.fit_transform(users_df[['WritingTime']]).toarray())
     encoder_df.columns = ['WritingTime.Morning', 'WritingTime.Midday', 'WritingTime.Afternoon', 'WritingTime.Evening', 'WritingTime.Night']
     fm = fm.join(encoder_df)
+
+    # topics
+    # todo unique topics - und dann entweder auch one hot encoden oder categorical feature mit zahl
+    # todo halt schauen ob wir wirklich alle topics nehmen oder nur die besten
+
     return fm
 
 
