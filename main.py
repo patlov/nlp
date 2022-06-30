@@ -6,7 +6,6 @@ import preprocess.data_preprocessing
 import argparse
 from vectorization.feature_matrix import VectorizationType
 from models.models import ModelType
-from preprocess.nlp_preprocessing import nlp_preprocess_text
 
 
 # GOAL: try to identify specific posters on their writing style (or additional metadata)
@@ -34,7 +33,6 @@ VECTORIZATIONTYPE = VectorizationType.Stylometry
 
 
 def main():
-
     print("######################################### STEP 1 - IMPORT DATA ############################################")
     if USE_FEATURE_CSV:
         pass  # just for testing go directly to the model using a predefined feature matrix
@@ -56,24 +54,26 @@ def main():
     else:
         fm = feature_matrix.getModelInput(users_df, VECTORIZATIONTYPE, to_csv=True)
 
-
-    if USE_METADATA:
+    if VECTORIZATIONTYPE == VECTORIZATIONTYPE.Stylometry:
         # for metadata we use the time (in hours) of writing the comment, number of positive and negative votes
         fm = feature_matrix.addMetadataToMatrix(users_df, fm)
 
     print("######################################### STEP 3 - CREATE MODELS ##########################################")
 
-    if VECTORIZATIONTYPE != VectorizationType.Word2Vec:
-        models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, print_report=True)
+    # if VECTORIZATIONTYPE == VectorizationType.NN:
+    # models.createModelWithFeatureMatrix(fm, ModelType.NN, vecType=VECTORIZATIONTYPE, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.SVM, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.RANDOM, vecType=VECTORIZATIONTYPE, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.MNB, print_report=True)
+    models.createModelWithFeatureMatrix(fm, ModelType.SVM, vecType=VECTORIZATIONTYPE, print_report=True)
 
-        models.createModelWithFeatureMatrix(fm, ModelType.LR, print_report=True)
-    else:
-        print("hi")
-        # models.createW2VDeepLearningModel()
+    models.createModelWithFeatureMatrix(fm, ModelType.MLP,  vecType=VECTORIZATIONTYPE, print_report=True)
+
+    models.createModelWithFeatureMatrix(fm, ModelType.KNN, vecType=VECTORIZATIONTYPE, print_report=True)
+
+    models.createModelWithFeatureMatrix(fm, ModelType.MNB, vecType=VECTORIZATIONTYPE, print_report=True)
+
+    models.createModelWithFeatureMatrix(fm, ModelType.LR, vecType=VECTORIZATIONTYPE, print_report=True)
 
 
 if __name__ == "__main__":
